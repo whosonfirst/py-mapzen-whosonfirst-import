@@ -24,7 +24,7 @@ class lalengua_importer(mapzen.whosonfirst.import.importer):
 
         f['properties'] = props
 
-class minitenders_imports(mapzen.whosonfirst.import.importer):
+class minitenders_importer(mapzen.whosonfirst.import.importer):
 
     def massage_feature(self, f):
 
@@ -33,5 +33,9 @@ class minitenders_imports(mapzen.whosonfirst.import.importer):
         props['iso:country'] = 'US'
         props['wof:parent_id'] = 85865903
         props['wof:belongsto'] = [85865903, 85688637, 85922583, 85633793, 102087579]
+        props['wof:name'] = f['properties']['name']
+
+        print props
+        sys.exit()
 
         f['properties'] = props
