@@ -1,6 +1,6 @@
-import mapzen.whosonfirst.import
+import mapzen.whosonfirst.importer
 
-class gowanusheights_importer(mapzen.whosonfirst.import.importer):
+class gowanusheights_importer(mapzen.whosonfirst.importer.base):
 
     def massage_feature(self, f):
 
@@ -13,7 +13,7 @@ class gowanusheights_importer(mapzen.whosonfirst.import.importer):
 
         f['properties'] = props
 
-class lalengua_importer(mapzen.whosonfirst.import.importer):
+class lalengua_importer(mapzen.whosonfirst.importer.base):
 
     def massage_feature(self, f):
 
@@ -24,18 +24,18 @@ class lalengua_importer(mapzen.whosonfirst.import.importer):
 
         f['properties'] = props
 
-class minitenders_importer(mapzen.whosonfirst.import.importer):
+class minitenders_importer(mapzen.whosonfirst.importer.base):
 
     def massage_feature(self, f):
+
+        name = f['properties']['Name']
 
         props = {}
         props['wof:placetype'] = 'microhood'
         props['iso:country'] = 'US'
         props['wof:parent_id'] = 85865903
         props['wof:belongsto'] = [85865903, 85688637, 85922583, 85633793, 102087579]
-        props['wof:name'] = f['properties']['name']
-
-        print props
-        sys.exit()
+        props['wof:name'] = name
+        props['name:eng_p'] = [ name ]
 
         f['properties'] = props

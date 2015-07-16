@@ -6,8 +6,8 @@ packages = find_packages()
 desc = open("README.md").read(),
 
 setup(
-    name='mapzen.whosonfirst.import',
-    namespace_packages=['mapzen', 'mapzen.whosonfirst', 'mapzen.whosonfirst.import'],
+    name='mapzen.whosonfirst.importer',
+    namespace_packages=['mapzen', 'mapzen.whosonfirst', 'mapzen.whosonfirst.importer'],
     version='0.01',
     description='Simple Python wrapper for managing Who\'s On First import-related functions',
     author='Mapzen',

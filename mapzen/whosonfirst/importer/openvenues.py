@@ -3,10 +3,10 @@ import logging
 import hashlib
 import address_normalizer
 
-import mapzen.whosonfirst.import
+import mapzen.whosonfirst.importer
 import woe.isthat
 
-class importer (mapzen.whosonfirst.import.importer):
+class importer (mapzen.whosonfirst.importer.base):
 
     def massage_feature(self, f):
 

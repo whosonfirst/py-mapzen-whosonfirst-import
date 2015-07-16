@@ -1,9 +1,9 @@
-import mapzen.whosonfirst.import
+import mapzen.whosonfirst.importer
 import woe.isthat
 
 # countries
 
-class adm0_importer(mapzen.whosonfirst.import.importer):
+class adm0_importer(mapzen.whosonfirst.importer.base):
 
     def massage_feature(self, f):
 
@@ -21,7 +21,7 @@ class adm0_importer(mapzen.whosonfirst.import.importer):
 
 # regions
 
-class adm1_importer(mapzen.whosonfirst.import.importer):
+class adm1_importer(mapzen.whosonfirst.importer.base):
 
     # note - this needs to be taught how to deal with adm1_region
     # thingies from quattroshapes (20150625/thisisaaronland)
@@ -50,7 +50,7 @@ class adm1_importer(mapzen.whosonfirst.import.importer):
 
 # counties (or whatever we end up calling them)
 
-class adm2_importer(mapzen.whosonfirst.import.importer):
+class adm2_importer(mapzen.whosonfirst.importer.base):
 
     def massage_feature(self, f):
 
@@ -89,7 +89,7 @@ class adm2_importer(mapzen.whosonfirst.import.importer):
 
 # localities
 
-class locality_importer(mapzen.whosonfirst.import.importer):
+class locality_importer(mapzen.whosonfirst.importer.base):
 
     def massage_feature(self, f):
 
@@ -122,7 +122,7 @@ class locality_importer(mapzen.whosonfirst.import.importer):
 
 # neighbourhoods
 
-class neighbourhood_importer(mapzen.whosonfirst.import.importer):
+class neighbourhood_importer(mapzen.whosonfirst.importer.base):
 
     def massage_feature(self, f):
 

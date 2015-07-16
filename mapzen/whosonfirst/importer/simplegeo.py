@@ -1,7 +1,7 @@
-import mapzen.whosonfirst.import
+import mapzen.whosonfirst.importer
 import logging
 
-class importer(mapzen.whosonfirst.import.importer):
+class importer(mapzen.whosonfirst.importer.base):
 
     def __init__(self, root, **kwargs):
 

@@ -1,6 +1,6 @@
-import mapzen.whosonfirst.import
+import mapzen.whosonfirst.importer
 
-class timezone_importer(mapzen.whosonfirst.import.importer):
+class timezone_importer(mapzen.whosonfirst.importer.base):
 
     def massage_feature(self, f):
 
