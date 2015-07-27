@@ -64,31 +64,31 @@ if __name__ == '__main__':
     if options.source == 'openvenues':
 
         import mapzen.whosonfirst.importer.openvenues
-        e = mapzen.whosonfirst.importer.openvenues.importer(dest, **obj_args)
+        imprtr = mapzen.whosonfirst.importer.openvenues.importer(dest, **obj_args)
 
     elif options.source == 'simplegeo':
         import mapzen.whosonfirst.importer.simplegeo
 
-        e = mapzen.whosonfirst.importer.simplegeo.importer(dest, **obj_args)
+        imprtr = mapzen.whosonfirst.importer.simplegeo.importer(dest, **obj_args)
 
     elif options.source == 'quattroshapes':
 
         import mapzen.whosonfirst.importer.quattroshapes
 
         if options.place == 'country' or options.place == 'adm0':
-            e = mapzen.whosonfirst.importer.quattroshapes.adm0_importer(dest, **obj_args)
+            imprtr = mapzen.whosonfirst.importer.quattroshapes.adm0_importer(dest, **obj_args)
 
         elif options.place == 'region' or options.place == 'adm1':
-            e = mapzen.whosonfirst.importer.quattroshapes.adm1_importer(dest, **obj_args)
+            imprtr = mapzen.whosonfirst.importer.quattroshapes.adm1_importer(dest, **obj_args)
 
         elif options.place == 'county' or options.place == 'adm2':
-            e = mapzen.whosonfirst.importer.quattroshapes.adm2_importer(dest, **obj_args)
+            imprtr = mapzen.whosonfirst.importer.quattroshapes.adm2_importer(dest, **obj_args)
 
         elif options.place == 'locality':
-            e = mapzen.whosonfirst.importer.quattroshapes.locality_importer(dest, **obj_args)
+            imprtr = mapzen.whosonfirst.importer.quattroshapes.locality_importer(dest, **obj_args)
 
         elif options.place == 'neighbourhood' or options.place == 'neighborhood':
-            e = mapzen.whosonfirst.importer.quattroshapes.neighbourhood_importer(dest, **obj_args)
+            imprtr = mapzen.whosonfirst.importer.quattroshapes.neighbourhood_importer(dest, **obj_args)
 
         else:
             logging.error("Invalid place or missing placetype")
@@ -99,15 +99,15 @@ if __name__ == '__main__':
         import mapzen.whosonfirst.importer.custom
             
         if options.place == 'gowanusheights':
-            e = mapzen.whosonfirst.importer.custom.gowanusheights_importer(dest, **obj_args)
+            imprtr = mapzen.whosonfirst.importer.custom.gowanusheights_importer(dest, **obj_args)
 
         elif options.place == 'lalengua':
 
-            e = mapzen.whosonfirst.importer.custom.lalengua_importer(dest, **obj_args)
+            imprtr = mapzen.whosonfirst.importer.custom.lalengua_importer(dest, **obj_args)
 
         elif options.place == 'minitenders':
 
-            e = mapzen.whosonfirst.importer.custom.minitenders_importer(dest, **obj_args)
+            imprtr = mapzen.whosonfirst.importer.custom.minitenders_importer(dest, **obj_args)
 
         else:
             logging.error("Invalid place or missing placetype")
@@ -118,7 +118,10 @@ if __name__ == '__main__':
         import mapzen.whosonfirst.importer.woedb
 
         if options.place == 'timezone':
-            e = mapzen.whosonfirst.importer.woedb.timezone_importer(dest, **obj_args)
+            imprtr = mapzen.whosonfirst.importer.woedb.timezone_importer(dest, **obj_args)
+
+        elif options.place == 'airport':
+            imprtr = mapzen.whosonfirst.importer.woedb.airport_importer(dest, **obj_args)
         else:
             logging.error("Invalid place or missing placetype")
             sys.exit()
@@ -163,7 +166,7 @@ if __name__ == '__main__':
                 if options.multi:
                     pool.apply_async(import_feature, (e, data, import_args, options))
                 else:
-                    e.import_feature(data, **import_args)
+                    imprtr.import_feature(data, **import_args)
 
         else:
 
@@ -178,7 +181,7 @@ if __name__ == '__main__':
                 if options.multi:
                     pool.apply_async(import_feature, (e, f, import_args, options))
                 else:
-                    e.import_feature(f, **import_args)
+                    imprtr.import_feature(f, **import_args)
 
         if options.multi:
             pool.close()
