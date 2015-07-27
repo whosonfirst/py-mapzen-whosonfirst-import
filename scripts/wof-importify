@@ -164,7 +164,7 @@ if __name__ == '__main__':
                     continue
 
                 if options.multi:
-                    pool.apply_async(import_feature, (e, data, import_args, options))
+                    pool.apply_async(import_feature, (imprtr, data, import_args, options))
                 else:
                     imprtr.import_feature(data, **import_args)
 
@@ -179,7 +179,7 @@ if __name__ == '__main__':
             for f in data['features']:
 
                 if options.multi:
-                    pool.apply_async(import_feature, (e, f, import_args, options))
+                    pool.apply_async(import_feature, (imprtr, f, import_args, options))
                 else:
                     imprtr.import_feature(f, **import_args)
 

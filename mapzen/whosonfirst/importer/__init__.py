@@ -2,6 +2,7 @@
 __import__('pkg_resources').declare_namespace(__name__)
 
 import mapzen.whosonfirst.export
+import logging
 
 import shapely.geometry
 import requests
@@ -15,35 +16,30 @@ class base(mapzen.whosonfirst.export.flatfile):
 
     def import_feature(self, feature, **kwargs):
 
-        if self.concordances_db:
-
-            # Note this is *before* we have massage_feature-ed
-            # the feature so the ID will be bound to the properties
-            # and not a 'wof:concordances' property
-
-            lookup = props.get(self.concordances_key, None)
-
-            if lookup:
-                wofid = self.concordances_db.woe_id(lookup)
-                logging.debug("got %s for %s" % (wofid, lookup))
-
-                if wofid != 0:
-                    return True
+        if self.has_concordance(feature):
+            logging.debug("already has concordance, skipping")
+            return True
 
         # as in mapzen.whosonfirst.export.flatfile.export_feature
 
         return self.export_feature(feature, **kwargs)
+
+    # This is left up to import-specific libraries to sort out
+    # (20150727/thisisaaronland)
+
+    def has_concordance(self, f):
+        return False
 
     # maybe put this in mapzen.whosonfirst.export as 'ensure_hierarchy' ?
     # (20150727/thisisaaronland)
 
     def append_hierarchy(self, feature, **kwargs):
 
-        props = feature['properties']
-
         hier = []
 
-        geom = f['geometry']
+        props = feature['properties']
+
+        geom = feature['geometry']
         shp = shapely.geometry.asShape(geom)
         coords = shp.centroid
 
