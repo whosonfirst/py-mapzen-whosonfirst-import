@@ -7,8 +7,8 @@ class timezone_importer(mapzen.whosonfirst.importer.base):
         woe_props = f['properties']
 
         props = {}
+        props['src:geom'] = 'woedb'
         props['wof:placetype'] = 'timezone'
-        props['wof:source'] = 'woedb'
         props['wof:name'] = woe_props.get('name', '')
         props['wof:fullname'] = woe_props.get('fullname', '')
         props['woe:id'] = woe_props.get('woe:id', 0)
@@ -26,8 +26,8 @@ class airport_importer(mapzen.whosonfirst.importer.base):
         woe_props = f['properties']
 
         props = {}
+        props['src:geom'] = 'woedb'
         props['wof:placetype'] = 'campus'
-        props['wof:source'] = 'woedb'
         props['wof:name'] = woe_props.get('name', '')
 
         props['wof:parent_id'] = -1
