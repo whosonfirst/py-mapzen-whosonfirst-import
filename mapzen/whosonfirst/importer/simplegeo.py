@@ -5,16 +5,17 @@ class importer(mapzen.whosonfirst.importer.base):
 
     def has_concordance(self, f):
 
+        # PLEASE REPLACE ME WITH py-mapzen-whosonfirst-concordances
+        # AS SOON AS ITMAKES SENSE (20150728/thisisaaronland)
+
         if not self.concordances_db:
             return False
             
         lookup = f['id']
-        print "LOOKUP %s" % lookup
 
         if lookup:
             wofid = self.concordances_db.woe_id(lookup)
             logging.debug("got %s for %s" % (wofid, lookup))
-            print "WOF ID %s" % wofid
 
         if wofid == 0:
             return False
@@ -58,5 +59,4 @@ class importer(mapzen.whosonfirst.importer.base):
 
         self.append_hierarchy(f)
 
-        print props
-        sys.exit()
+        logging.debug(props)

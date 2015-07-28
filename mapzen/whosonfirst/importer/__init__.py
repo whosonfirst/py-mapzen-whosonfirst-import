@@ -27,6 +27,9 @@ class base(mapzen.whosonfirst.export.flatfile):
     # This is left up to import-specific libraries to sort out
     # (20150727/thisisaaronland)
 
+    # PLEASE REPLACE ME WITH py-mapzen-whosonfirst-concordances
+    # AS SOON AS ITMAKES SENSE (20150728/thisisaaronland)
+
     def has_concordance(self, f):
         return False
 
@@ -46,29 +49,31 @@ class base(mapzen.whosonfirst.export.flatfile):
         lat = coords.y
         lon = coords.x
 
-        for pt in ('neighbourhood', 'locality', 'region', 'country'):
+        # this assumes a copy of py-mapzen-whosonfirst-lookup with
+        # recursive get_by_latlon (20150728/thisisaaronland)
 
-            try:
-                params = {'latitude': lat, 'longitude': lon, 'placetype': pt}
-                rsp = requests.get('https://54.148.56.3/', params=params, verify=False)
+        placetypes = ('neighbourhood', 'locality', 'region', 'country')
+        placetypes = ",".join(placetypes)
+
+        try:
+            params = {'latitude': lat, 'longitude': lon, 'placetypes': placetypes}
+            rsp = requests.get('https://54.148.56.3/', params=params, verify=False)
                 
-                data = json.loads(rsp.content)
-            except Exception, e:
-                logging.error(e)
-                continue
+            data = json.loads(rsp.content)
+        except Exception, e:
+            logging.error(e)
+            return
 
-            if len(data['features']) == 1:
-                props['wof:parent_id'] = data['features'][0]['id']
+        if len(data['features']) == 1:
+            props['wof:parent_id'] = data['features'][0]['id']
 
-            if len(data['features']) >= 1:
+        if len(data['features']) >= 1:
 
-                for pf in data['features']:
-                    pp = pf['properties']
+            for pf in data['features']:
+                pp = pf['properties']
 
-                    if pp.get('wof:hierarchy', False):
-                        hier.extend(pp['wof:hierarchy'])
-
-                break
+                if pp.get('wof:hierarchy', False):
+                    hier.extend(pp['wof:hierarchy'])
 
         props['wof:hierarchy'] = hier
 
