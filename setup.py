@@ -21,7 +21,7 @@ setup(
         ],
     dependency_links=[
         # 'https://github.com/openvenues/address_normalizer/tarball/master#egg=address-normalizer-0.2',
-        'https://github.com/thisisaaronland/py-woe-isthat/tarball/master#egg=woe-isthat-0.15',
+        'https://github.com/thisisaaronland/py-woe-isthat/tarball/master#egg=woe-isthat-0.16',
         'https://github.com/mapzen/py-mapzen-whosonfirst-export/tarball/master#egg=mapzen-whosonfirst-export-0.39',
         ],
     packages=packages,
