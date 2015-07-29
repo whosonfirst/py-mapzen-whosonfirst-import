@@ -52,11 +52,11 @@ class base(mapzen.whosonfirst.export.flatfile):
         # this assumes a copy of py-mapzen-whosonfirst-lookup with
         # recursive get_by_latlon (20150728/thisisaaronland)
 
-        placetypes = ('neighbourhood', 'locality', 'region', 'country')
-        placetypes = ",".join(placetypes)
+        placetype = ('neighbourhood', 'locality', 'region', 'country')
+        placetype = ",".join(placetype)
 
         try:
-            params = {'latitude': lat, 'longitude': lon, 'placetypes': placetypes}
+            params = {'latitude': lat, 'longitude': lon, 'placetype': placetype}
             rsp = requests.get('https://54.148.56.3/', params=params, verify=False)
                 
             data = json.loads(rsp.content)
