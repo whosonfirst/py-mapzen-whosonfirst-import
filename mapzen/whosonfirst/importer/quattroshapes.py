@@ -30,15 +30,17 @@ class adm1_importer(mapzen.whosonfirst.importer.base):
 
         props = f['properties']
 
-        props['wof:source'] = 'quattroshapes'
+        props['src:geom'] = 'quattroshapes'
         props['wof:placetype'] = 'region'
 
         props['wof:name'] = props['qs_a1']
 
         woeid = props.get('qs_woe_id', None)
 
+        """
         if woeid:
             props['woe:id'] = woeid
+        """
 
         iso = props.get('qs_iso_cc', None)
 

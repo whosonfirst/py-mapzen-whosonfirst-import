@@ -48,9 +48,12 @@ class base(mapzen.whosonfirst.export.flatfile):
 
         lat = coords.y
         lon = coords.x
-
+        
         # this assumes a copy of py-mapzen-whosonfirst-lookup with
         # recursive get_by_latlon (20150728/thisisaaronland)
+
+        # TO DO: replace with py-mapzen-whosonfirst-spatial
+        # (20150826/thisisaaronland)
 
         placetype = ('neighbourhood', 'locality', 'region', 'country')
         placetype = ",".join(placetype)
