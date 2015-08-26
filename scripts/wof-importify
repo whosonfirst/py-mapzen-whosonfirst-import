@@ -20,6 +20,7 @@ if __name__ == '__main__':
     
     import sys
     import optparse
+    import ConfigParser
     import multiprocessing
 
     opt_parser = optparse.OptionParser()
@@ -29,7 +30,9 @@ if __name__ == '__main__':
 
     opt_parser.add_option('-p', '--placetype', dest='place', action='store', default=None, help='A particular place type (for a source) to import')
 
-    opt_parser.add_option('--concordances-db', dest='concordances_db', action='store', default=None, help='')
+    opt_parser.add_option('-c', '--concordances', dest='concordances', action='store_true', default=False, help='')
+    opt_parser.add_option('--concordances-dsn', dest='concordances_dsn', action='store', default=None, help='')
+    opt_parser.add_option('--concordances-cfg', dest='concordances_cfg', action='store', default=None, help='')
     opt_parser.add_option('--concordances-key', dest='concordances_key', action='store', default=None, help='')
 
     opt_parser.add_option('-m', '--multi-processing', dest='multi', action='store_true', default=False, help='Use multiple processors (default is False)')
@@ -37,7 +40,7 @@ if __name__ == '__main__':
     opt_parser.add_option('-l', '--line-delimited', dest='line', action='store_true', default=False, help='GeoJSON is line-delimited (default is False)')
     opt_parser.add_option('-k', dest='skip', action='store_true', default=False, help='Do not overwrite existing files (default is False)')
 
-    opt_parser.add_option('-d', '--debug', dest='debug', action='store_true', default=False, help='Enable debugging (default is false)')
+    opt_parser.add_option('-n', '--debug', dest='debug', action='store_true', default=False, help='Enable debugging (default is false)')
     opt_parser.add_option('-v', '--verbose', dest='verbose', action='store_true', default=False, help='Be chatty (default is false)')
 
     options, args = opt_parser.parse_args()
@@ -51,11 +54,26 @@ if __name__ == '__main__':
         'debug': options.debug
         }
             
-    if options.concordances_db:
-        obj_args['concordances_db'] = options.concordances_db
+    if options.concordances:
 
-    if options.concordances_key:
-        obj_args['concordances_key'] = options.concordances_key
+        obj_args['concordances'] = True
+
+        if options.concordances_dsn:
+            obj_args['concordances_dsn'] = options.concordances_dsn
+        elif options.concordances_cfg:
+            cfg = ConfigParser.ConfigParser()
+            cfg.read(options.concordances_cfg)
+            dsn = mapzen.whosonfirst.concordances.cfg2dsn(cfg, 'concordances')
+            obj_args['concordances_dsn'] = dsn
+        else:
+            logging.error("Missing concordances DSN or config")
+            sys.exit()
+
+        if options.concordances_key:
+            obj_args['concordances_key'] = options.concordances_key
+        else:
+            logging.error("Missing concordances key")
+            sys.exit()
 
     import_args = {
         'skip_existing': options.skip
@@ -69,8 +87,8 @@ if __name__ == '__main__':
         imprtr = mapzen.whosonfirst.importer.openvenues.importer(dest, **obj_args)
 
     elif options.source == 'simplegeo':
-        import mapzen.whosonfirst.importer.simplegeo
 
+        import mapzen.whosonfirst.importer.simplegeo
         imprtr = mapzen.whosonfirst.importer.simplegeo.importer(dest, **obj_args)
 
     elif options.source == 'quattroshapes':
@@ -104,11 +122,9 @@ if __name__ == '__main__':
             imprtr = mapzen.whosonfirst.importer.custom.gowanusheights_importer(dest, **obj_args)
 
         elif options.place == 'lalengua':
-
             imprtr = mapzen.whosonfirst.importer.custom.lalengua_importer(dest, **obj_args)
 
         elif options.place == 'minitenders':
-
             imprtr = mapzen.whosonfirst.importer.custom.minitenders_importer(dest, **obj_args)
 
         else:
@@ -124,6 +140,7 @@ if __name__ == '__main__':
 
         elif options.place == 'airport':
             imprtr = mapzen.whosonfirst.importer.woedb.airport_importer(dest, **obj_args)
+
         else:
             logging.error("Invalid place or missing placetype")
             sys.exit()
