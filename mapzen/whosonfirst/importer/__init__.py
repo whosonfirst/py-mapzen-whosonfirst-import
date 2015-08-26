@@ -24,13 +24,22 @@ class base(mapzen.whosonfirst.export.flatfile):
 
         return self.export_feature(feature, **kwargs)
 
-    # This is left up to import-specific libraries to sort out
-    # (20150727/thisisaaronland)
-
-    # PLEASE REPLACE ME WITH py-mapzen-whosonfirst-concordances
-    # AS SOON AS ITMAKES SENSE (20150728/thisisaaronland)
+    # this is left to individual packages to implement
+    # (20150826/thisisaaronland)
 
     def has_concordance(self, f):
+        return False
+
+    def has_concordance_lookup(self, other_id, other_src):
+
+        # this assumes you've checked that concordances are
+        # enabled already (20150826/thisisaaronland)
+
+        row = self.concordances_qry.by_other_id(other_id, other_src)
+
+        if row:
+            return True
+
         return False
 
     # maybe put this in mapzen.whosonfirst.export as 'ensure_hierarchy' ?

@@ -5,22 +5,13 @@ class importer(mapzen.whosonfirst.importer.base):
 
     def has_concordance(self, f):
 
-        # PLEASE REPLACE ME WITH py-mapzen-whosonfirst-concordances
-        # AS SOON AS ITMAKES SENSE (20150728/thisisaaronland)
-
-        if not self.concordances_db:
+        if not self.concordances:
             return False
             
-        lookup = f['id']
+        other_src = self.concordances_key
+        other_id = f['id']
 
-        if lookup:
-            wofid = self.concordances_db.woe_id(lookup)
-            logging.debug("got %s for %s" % (wofid, lookup))
-
-        if wofid == 0:
-            return False
-
-        return True
+        return self.has_concordance_lookup(other_id, other_src)
 
     def massage_feature(self, f):
 
