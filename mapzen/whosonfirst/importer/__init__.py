@@ -36,6 +36,9 @@ class base(mapzen.whosonfirst.export.flatfile):
     # maybe put this in mapzen.whosonfirst.export as 'ensure_hierarchy' ?
     # (20150727/thisisaaronland)
 
+    # please to update me to use mapzen.whosonfirst.utils.generate_hierarchy
+    # (21050807/thisisaaronland)
+    
     def append_hierarchy(self, feature, **kwargs):
 
         hier = []
