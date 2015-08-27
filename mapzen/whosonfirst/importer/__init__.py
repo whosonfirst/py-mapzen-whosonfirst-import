@@ -9,6 +9,7 @@ import json
 
 import mapzen.whosonfirst.export
 import mapzen.whosonfirst.spatial
+import mapzen.whosonfirst.placetypes
 
 class base(mapzen.whosonfirst.export.flatfile):
 
@@ -21,7 +22,8 @@ class base(mapzen.whosonfirst.export.flatfile):
             self.reversegeo = True
 
             spatial_dsn = kwargs.get('reversegeo_dsn', None)
-            spatial_qry = mapzen.whosonfirst.spatial.query(dsn)
+            spatial_qry = mapzen.whosonfirst.spatial.query(spatial_dsn)
+
             self.spatial_qry = spatial_qry
 
     def import_feature(self, feature, **kwargs):
@@ -53,11 +55,49 @@ class base(mapzen.whosonfirst.export.flatfile):
 
         return False
 
-    # maybe put this in mapzen.whosonfirst.export as 'ensure_hierarchy' ?
-    # (20150727/thisisaaronland)
+    def append_hierarchy_and_parent(self, feature, **kwargs):
 
-    # please to update me to use mapzen.whosonfirst.utils.generate_hierarchy
-    # (21050807/thisisaaronland)
+        self.append_hierarchy(feature, **kwargs)
+
+        parent_id = -1
+
+        props = feature['properties']
+        hier = props['wof:hierarchy']
+        count = len(hier)
+
+        if count == 0:
+            logging.warning("failed to assign hierarchy so there's nothing to derive parents from")
+            
+        elif count > 1:
+            logging.warning("too many parents to choose from")
+
+        else:
+
+            h = hier[0]
+
+            placetype = props['wof:placetype']
+            placetype = mapzen.whosonfirst.placetypes.placetype(placetype)
+
+            # file under known-knowns : some (many?) venues may not have
+            # available neighbourhood polygons at the time of their import
+            # so rather than changing the placetype spec and allowing
+            # localities to parent venues we're just going to mark the 
+            # parent ID as -1 and deal with it later once we've imported
+            # more data (20150826/thisisaaronland)
+
+            for p in placetype.parents():
+            
+                k = "%s_id" % p
+
+                if h.get(k, None):
+                    parent_id = h[k]
+                    break
+
+        props['wof:parent_id'] = parent_id
+        feature['properties'] = props
+
+    # note this is out of sync with mapzen.whosonfirst.utils.generate_hierarchy
+    # which calls the remote API endpoint (21050826/thisisaaronland)
     
     def append_hierarchy(self, feature, **kwargs):
 
@@ -71,18 +111,16 @@ class base(mapzen.whosonfirst.export.flatfile):
 
         lat = coords.y
         lon = coords.x
-        
-        # this assumes a copy of py-mapzen-whosonfirst-lookup with
-        # recursive get_by_latlon (20150728/thisisaaronland)
 
-        # TO DO: replace with py-mapzen-whosonfirst-spatial
-        # (20150826/thisisaaronland)
-
-        """
         placetypes = ('neighbourhood', 'locality', 'region', 'country')
-        self.spatial_qry.get_by_latlon_recursive(lat, lon, placetypes=placetypes)
-        """
+        rsp = self.spatial_qry.get_by_latlon_recursive(lat, lon, placetypes=placetypes)
 
+        # See this - we're doing it this way just to maintain parity with the
+        # (current) reversegeo remote API endpoint (20150826/thisisaaronland)
+
+        data = { 'features': list(rsp) }
+
+        """
         placetype = ('neighbourhood', 'locality', 'region', 'country')
         placetype = ",".join(placetype)
 
@@ -94,6 +132,7 @@ class base(mapzen.whosonfirst.export.flatfile):
         except Exception, e:
             logging.error(e)
             return
+        """
 
         if len(data['features']) == 1:
             props['wof:parent_id'] = data['features'][0]['id']
@@ -107,6 +146,5 @@ class base(mapzen.whosonfirst.export.flatfile):
                     hier.extend(pp['wof:hierarchy'])
 
         props['wof:hierarchy'] = hier
-
         feature['properties'] = props
         

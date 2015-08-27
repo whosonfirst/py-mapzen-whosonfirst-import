@@ -48,6 +48,6 @@ class importer(mapzen.whosonfirst.importer.base):
 
         f['properties'] = props
 
-        self.append_hierarchy(f)
+        self.append_hierarchy_and_parent(f)
 
         logging.debug(props)
