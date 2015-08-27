@@ -1,18 +1,28 @@
 # https://pythonhosted.org/setuptools/setuptools.html#namespace-packages
 __import__('pkg_resources').declare_namespace(__name__)
 
-import mapzen.whosonfirst.export
 import logging
 
 import shapely.geometry
 import requests
 import json
 
+import mapzen.whosonfirst.export
+import mapzen.whosonfirst.spatial
+
 class base(mapzen.whosonfirst.export.flatfile):
 
     def __init__(self, root, **kwargs):
 
         mapzen.whosonfirst.export.flatfile.__init__(self, root, **kwargs)
+
+        if kwargs.get('reversegeo', False):
+
+            self.reversegeo = True
+
+            spatial_dsn = kwargs.get('reversegeo_dsn', None)
+            spatial_qry = mapzen.whosonfirst.spatial.query(dsn)
+            self.spatial_qry = spatial_qry
 
     def import_feature(self, feature, **kwargs):
 
@@ -24,8 +34,9 @@ class base(mapzen.whosonfirst.export.flatfile):
 
         return self.export_feature(feature, **kwargs)
         
-    # this is left to individual packages to implement
-    # (20150826/thisisaaronland)
+    # this is left to individual packages to implement; it is 
+    # assumed that most of them will call has_concordance_lookup
+    # below (20150826/thisisaaronland)
 
     def has_concordance(self, f):
         return False
@@ -66,6 +77,11 @@ class base(mapzen.whosonfirst.export.flatfile):
 
         # TO DO: replace with py-mapzen-whosonfirst-spatial
         # (20150826/thisisaaronland)
+
+        """
+        placetypes = ('neighbourhood', 'locality', 'region', 'country')
+        self.spatial_qry.get_by_latlon_recursive(lat, lon, placetypes=placetypes)
+        """
 
         placetype = ('neighbourhood', 'locality', 'region', 'country')
         placetype = ",".join(placetype)

@@ -6,6 +6,7 @@ import geojson
 import logging
 
 import mapzen.whosonfirst.concordances
+import mapzen.whosonfirst.spatial
 
 def import_feature(importer, feature, args, options):
 
@@ -31,9 +32,11 @@ if __name__ == '__main__':
     opt_parser.add_option('-p', '--placetype', dest='place', action='store', default=None, help='A particular place type (for a source) to import')
 
     opt_parser.add_option('-c', '--concordances', dest='concordances', action='store_true', default=False, help='')
-    opt_parser.add_option('--concordances-dsn', dest='concordances_dsn', action='store', default=None, help='')
     opt_parser.add_option('--concordances-cfg', dest='concordances_cfg', action='store', default=None, help='')
     opt_parser.add_option('--concordances-key', dest='concordances_key', action='store', default=None, help='')
+
+    opt_parser.add_option('-r', '--reversegeo', dest='reversegeo', action='store_true', default=False, help='')
+    opt_parser.add_option('--reversegeo-cfg', dest='reversegeo_cfg', action='store', default=None, help='')
 
     opt_parser.add_option('-m', '--multi-processing', dest='multi', action='store_true', default=False, help='Use multiple processors (default is False)')
 
@@ -58,13 +61,14 @@ if __name__ == '__main__':
 
         obj_args['concordances'] = True
 
-        if options.concordances_dsn:
-            obj_args['concordances_dsn'] = options.concordances_dsn
-        elif options.concordances_cfg:
+        if options.concordances_cfg:
+
             cfg = ConfigParser.ConfigParser()
             cfg.read(options.concordances_cfg)
+
             dsn = mapzen.whosonfirst.concordances.cfg2dsn(cfg, 'concordances')
             obj_args['concordances_dsn'] = dsn
+
         else:
             logging.error("Missing concordances DSN or config")
             sys.exit()
@@ -74,6 +78,26 @@ if __name__ == '__main__':
         else:
             logging.error("Missing concordances key")
             sys.exit()
+
+    # spatial (reversegeo) lookups
+
+    if options.reversegeo:
+
+        obj_args['reversegeo'] = True
+
+        if options.reversegeo_cfg:
+
+            cfg = ConfigParser.ConfigParser()
+            cfg.read(options.reversegeo_cfg)
+
+            dsn = mapzen.whosonfirst.spatial.cfg2dsn(cfg, 'whosonfirst')
+            obj_args['reversegeo_dsn'] = dsn
+
+        else:
+            logging.error("Missing reverse geo DSN or config")
+            sys.exit()
+
+    # specific importer args
 
     import_args = {
         'skip_existing': options.skip
