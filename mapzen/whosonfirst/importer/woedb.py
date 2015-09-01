@@ -124,5 +124,5 @@ class airport_importer(woedb_importer):
 
         f['properties'] = props
 
-        self.append_hierarchy(f)
+        self.append_hierarchy_and_parent(f)
         
