@@ -6,7 +6,7 @@ import logging
 import shapely.geometry
 import requests
 import json
-
+import random
 import mapzen.whosonfirst.export
 import mapzen.whosonfirst.spatial
 import mapzen.whosonfirst.placetypes
@@ -27,9 +27,27 @@ class base(mapzen.whosonfirst.export.flatfile):
             self.reversegeo = True
 
             spatial_dsn = kwargs.get('reversegeo_dsn', None)
-            spatial_qry = mapzen.whosonfirst.spatial.query(spatial_dsn)
+            self.spatial_dsn = spatial_dsn
 
-            self.spatial_qry = spatial_qry
+            # because this: http://initd.org/psycopg/docs/usage.html#thread-safety
+
+            self.spatial_qry_maxconns = 20
+            self.spatial_qry_conns = []
+
+    def spatial_qry(self):
+
+        if len(self.spatial_qry_conns) < self.spatial_qry_maxconns:
+
+            conn = mapzen.whosonfirst.spatial.query(self.spatial_dsn)
+            self.spatial_qry_conns.append(conn)
+
+            logging.debug("return new spatial query connection")
+            return conn
+
+        logging.debug("return existing spatial query connection")
+
+        random.shuffle(self.spatial_qry_conns)
+        return self.spatial_qry_conns[0]
 
     def import_feature(self, feature, **kwargs):
 
@@ -66,7 +84,8 @@ class base(mapzen.whosonfirst.export.flatfile):
         # this assumes you've checked that concordances are
         # enabled already (20150826/thisisaaronland)
 
-        row = self.concordances_qry.by_other_id(other_id, other_src)
+        qry = self.concordances_qry()
+        row = qry.by_other_id(other_id, other_src)
 
         if row:
             return row
@@ -79,4 +98,5 @@ class base(mapzen.whosonfirst.export.flatfile):
             logging.warning("reverse geo is not enabled, can not append hierarchy")
             return
 
-        self.spatial_qry.append_hierarchy_and_parent(feature)
+        qry = self.spatial_qry()
+        qry.append_hierarchy_and_parent(feature)
