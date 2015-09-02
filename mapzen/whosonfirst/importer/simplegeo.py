@@ -46,8 +46,9 @@ class importer(mapzen.whosonfirst.importer.base):
 
             props['wof:concordances'] = concordances
 
+        tags = props.get('sg:tags', [])
+        props['wof:tags'] = tags
+
         f['properties'] = props
 
         self.append_hierarchy_and_parent(f)
-
-        logging.debug(props)
