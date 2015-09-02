@@ -199,6 +199,17 @@ if __name__ == '__main__':
         logging.error("Unknown or invalid source to import")
         sys.exit()
 
+    # specifically this: http://initd.org/psycopg/docs/usage.html#thread-safety
+    # 
+    # "The above observations are only valid for regular threads: they
+    # don’t apply to forked processes nor to green threads. libpq
+    # connections shouldn’t be used by a forked processes, so when
+    # using a module such as multiprocessing or a forking web deploy
+    # method such as FastCGI make sure to create the connections after
+    # the fork."
+    # 
+    # (20150902/thisisaaronland)
+
     if options.multi:
         logging.error("multiprocessing is known to behave poorly with postgis")
         sys.exit()
