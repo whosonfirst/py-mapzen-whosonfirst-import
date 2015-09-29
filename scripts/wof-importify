@@ -1,9 +1,14 @@
 #!/usr/bin/env python
 
 import sys
+import signal
+import multiprocessing
 import os.path
 import geojson
 import logging
+
+import traceback
+import pprint
 
 import mapzen.whosonfirst.concordances
 import mapzen.whosonfirst.spatial
@@ -15,14 +20,24 @@ def import_feature(importer, feature, args, options):
     else:
         logging.basicConfig(level=logging.INFO)
 
-    importer.import_feature(feature, **args)
+    try:
+        logging.debug("import %s" % pprint.pformat(feature))
+
+        path = importer.import_feature(feature, **args)
+        logging.debug("importified %s" % path)
+    except KeyboardInterrupt:
+        logging.warning("Received interupt handler (in import_feature scope) so exiting")
+        sys.exit()
+    except Exception, e:
+        logging.error("Failed to process feature because %s" % e)
+        logging.debug(traceback.extract_stack())
+
+        raise Exception, e
 
 if __name__ == '__main__':
     
-    import sys
     import optparse
     import ConfigParser
-    import multiprocessing
 
     opt_parser = optparse.OptionParser()
 
@@ -190,8 +205,17 @@ if __name__ == '__main__':
         logging.info("reading %s" % path)
 
         if options.multi:
-            logging.debug("create new pool")
-            pool = multiprocessing.Pool(processes=8)
+            processes = multiprocessing.cpu_count() * 2
+            pool = multiprocessing.Pool(processes=processes)
+
+            logging.debug("create new multiprocessing pool with %s processers" % processes)
+
+            def sigint_handler(signum, frame):
+                logging.warning("Received interupt handler (in pool scope) so exiting")
+                pool.terminate()
+                sys.exit()
+
+            signal.signal(signal.SIGINT, sigint_handler)
 
         fh = open(path, 'r')
 
@@ -209,8 +233,8 @@ if __name__ == '__main__':
                 if options.multi:
                     pool.apply_async(import_feature, (imprtr, data, import_args, options))
                 else:
-                    imprtr.import_feature(data, **import_args)
-
+                    import_feature(imprtr, data, import_args, options)
+                    
         else:
 
             try:
@@ -224,7 +248,7 @@ if __name__ == '__main__':
                 if options.multi:
                     pool.apply_async(import_feature, (imprtr, f, import_args, options))
                 else:
-                    imprtr.import_feature(f, **import_args)
+                    import_feature(imprtr, data, import_args, options)
 
         if options.multi:
             pool.close()

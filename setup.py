@@ -8,7 +8,7 @@ desc = open("README.md").read(),
 setup(
     name='mapzen.whosonfirst.importer',
     namespace_packages=['mapzen', 'mapzen.whosonfirst', 'mapzen.whosonfirst.importer'],
-    version='0.04',
+    version='0.06',
     description='Simple Python wrapper for managing Who\'s On First import-related functions',
     author='Mapzen',
     url='https://github.com/thisisaaronland/py-mapzen-gazetter-import',
@@ -26,6 +26,7 @@ setup(
         ],
     packages=packages,
     scripts=[
+        'scripts/wof-importify'
         ],
-    download_url='https://github.com/thisisaaronland/py-mapzen-whosonfirst-import/releases/tag/v0.04',
+    download_url='https://github.com/thisisaaronland/py-mapzen-whosonfirst-import/releases/tag/v0.06',
     license='BSD')
