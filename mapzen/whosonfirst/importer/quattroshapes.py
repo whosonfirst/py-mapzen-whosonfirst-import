@@ -1,79 +1,29 @@
 import mapzen.whosonfirst.importer
-import woe.isthat
 
-# countries
+class qs_importer(mapzen.whosonfirst.importer.base):
 
-class adm0_importer(mapzen.whosonfirst.importer.base):
-
-    def massage_feature(self, f):
-
-        props = f['properties']
+    def massage_qs_properties(self, props):
         
-        # because there are no QS UIDS for countries...
-        props['qs:id'] = props['qs_iso_cc']
-
-        props['wof:name'] = props['qs_adm0']
-        props['wof:source'] = 'quattroshapes'
-        props['wof:placetype'] = 'country'
-
-        f['properties'] = props
-        # pass-by-ref
-
-# regions
-
-class adm1_importer(mapzen.whosonfirst.importer.base):
-
-    # note - this needs to be taught how to deal with adm1_region
-    # thingies from quattroshapes (20150625/thisisaaronland)
-
-    def massage_feature(self, f):
-
-        props = f['properties']
-
-        props['src:geom'] = 'quattroshapes'
-        props['wof:placetype'] = 'region'
-
-        props['wof:name'] = props['qs_a1']
-
-        woeid = props.get('qs_woe_id', None)
-
-        """
-        if woeid:
-            props['woe:id'] = woeid
-        """
-
-        iso = props.get('qs_iso_cc', None)
-
-        if iso:
-            props['iso:country'] = iso
-
-        f['properties'] = props
-        # pass-by-ref
-
-# counties (or whatever we end up calling them)
-
-class adm2_importer(mapzen.whosonfirst.importer.base):
-
-    def massage_feature(self, f):
-
-        props = f['properties']
-
-        props['wof:source'] = 'quattroshapes'
-        props['wof:placetype'] = 'county'
-
-        props['wof:name'] = props['qs_a2']
-
         woeid = props.get('qs_woe_id', None)
         gnid = props.get('qs_gn_id', None)
 
-        if woeid:
-            props['woe:id'] = woeid
+        if woeid or gnid:
+
+            concordances = {}
+            
+            if woeid:
+                concordances['gp:id'] = woeid
+            if gnid:
+                concordances['gn:id'] = gnid
+
+            props['wof:concordances'] = concordances
 
         iso = props.get('qs_iso_cc', None)
 
         if iso:
             del(props['qs_iso_cc'])
             props['iso:country'] = iso
+            props['wof:country'] = iso
 
         for k, v in props.items():
             
@@ -86,64 +36,115 @@ class adm2_importer(mapzen.whosonfirst.importer.base):
 
                 del(props[k])
 
+        return props
+
+# countries
+
+class adm0_importer(qs_importer):
+
+    def massage_feature(self, f):
+
+        props = f['properties']
+        
+        # because there are no QS UIDS for countries...
+        props['qs:id'] = props['qs_iso_cc']
+
+        props['wof:name'] = props['qs_adm0']
+        props['src:geom'] = 'quattroshapes'
+        props['wof:placetype'] = 'country'
+
+        props = self.massage_qs_properties(props)
+
         f['properties'] = props
         # pass-by-ref
 
-# localities
+# regions
 
-class locality_importer(mapzen.whosonfirst.importer.base):
+class adm1_importer(qs_importer):
 
     def massage_feature(self, f):
 
         props = f['properties']
 
-        props['wof:source'] = 'quattroshapes'
+        props['src:geom'] = 'quattroshapes'
+        props['wof:placetype'] = 'region'
+
+        props['wof:name'] = props['qs_a1']
+
+        props = self.massage_qs_properties(props)
+
+        f['properties'] = props
+        # pass-by-ref
+
+# regions... but different... or something
+
+class adm1_region_importer(qs_importer):
+
+    def massage_feature(self, f):
+
+        logging.error("WHY ARE YOU RUNNING THIS")
+        sys.exit()
+
+        props = f['properties']
+
+        props['src:geom'] = 'quattroshapes'
+        props['wof:placetype'] = 'region'	# DOUBLE CHECK
+
+        props['wof:name'] = 'FIX ME'
+
+        props = self.massage_qs_properties(props)
+
+        f['properties'] = props
+        # pass-by-ref
+
+# counties (or whatever we end up calling them)
+
+class adm2_importer(mapzen.whosonfirst.importer.base):
+
+    def massage_feature(self, f):
+
+        props = f['properties']
+
+        props['src:geom'] = 'quattroshapes'
+        props['wof:placetype'] = 'county'
+        props['wof:name'] = props['qs_a2']
+
+        props = self.massage_qs_properties(props)
+
+        f['properties'] = props
+        # pass-by-ref
+
+# localities
+
+class locality_importer(qs_importer):
+
+    def massage_feature(self, f):
+
+        props = f['properties']
+
+        props['src:geom'] = 'quattroshapes'
         props['wof:placetype'] = 'locality'
         props['wof:name'] = props['qs_loc']
 
-        woeid = props.get('qs_woe_id', None)
-
-        if woeid:
-            props['woe:id'] = woeid
-
-        gnid = props.get('qs_gn_id', None)
-
-        if gnid:
-            props['geonames:id'] = gnid
-
-        # because stuff like this - u'qs_iso_cc': u'U',
-        # (20150626/thisisaaronland)
-
-        iso = props.get('qs_iso_cc', None)
-
-        if iso and len(iso) == 2:
-            props['iso:country'] = iso
+        props = self.massage_qs_properties(props)
 
         f['properties'] = props
         # pass-by-ref
 
 # neighbourhoods
 
-class neighbourhood_importer(mapzen.whosonfirst.importer.base):
+class neighbourhood_importer(qs_importer):
 
     def massage_feature(self, f):
 
         props = f['properties']
 
-        props['wof:source'] = 'quattroshapes'
+        props['src:geom'] = 'quattroshapes'
         props['wof:placetype'] = 'neighbourhood'
 
         props['wof:name'] = props['name']
 
-        woeid = props.get('woe_id', None)
-
-        if woeid:
-            props['woe:id'] = woeid
-
-        gnid = props.get('gn_id', None)
-
-        if gnid:
-            props['geonames:id'] = gnid
+        props = self.massage_qs_properties(props)
 
         f['properties'] = props
         # pass-by-ref
