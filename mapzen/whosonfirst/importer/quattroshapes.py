@@ -114,6 +114,48 @@ class adm2_importer(mapzen.whosonfirst.importer.base):
         f['properties'] = props
         # pass-by-ref
 
+# counties... but different... that are regions... or something
+
+class adm2_region_importer(qs_importer):
+
+    def massage_feature(self, f):
+
+        logging.error("WHY ARE YOU RUNNING THIS")
+        sys.exit()
+
+        props = f['properties']
+
+        props['src:geom'] = 'quattroshapes'
+        props['wof:placetype'] = 'FIX ME'
+
+        props['wof:name'] = 'FIX ME'
+
+        props = self.massage_qs_properties(props)
+
+        f['properties'] = props
+        # pass-by-ref
+
+# localadmins which are... what exactly
+
+class localadmin_importer(qs_importer):
+
+    def massage_feature(self, f):
+
+        logging.error("WHY ARE YOU RUNNING THIS")
+        sys.exit()
+
+        props = f['properties']
+
+        props['src:geom'] = 'quattroshapes'
+        props['wof:placetype'] = 'FIX ME'
+
+        props['wof:name'] = 'FIX ME'
+
+        props = self.massage_qs_properties(props)
+
+        f['properties'] = props
+        # pass-by-ref
+
 # localities
 
 class locality_importer(qs_importer):
