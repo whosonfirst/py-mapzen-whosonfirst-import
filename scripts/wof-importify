@@ -140,8 +140,17 @@ if __name__ == '__main__':
         elif options.place == 'region' or options.place == 'adm1':
             imprtr = mapzen.whosonfirst.importer.quattroshapes.adm1_importer(dest, **obj_args)
 
+        elif options.place == 'macroregion' or options.place == 'adm1_region':
+            imprtr = mapzen.whosonfirst.importer.quattroshapes.adm1_region_importer(dest, **obj_args)
+
         elif options.place == 'county' or options.place == 'adm2':
             imprtr = mapzen.whosonfirst.importer.quattroshapes.adm2_importer(dest, **obj_args)
+
+        elif options.place == 'macrocounty' or options.place == 'adm2_region':
+            imprtr = mapzen.whosonfirst.importer.quattroshapes.adm2_region_importer(dest, **obj_args)
+
+        elif options.place == 'localadmin':
+            imprtr = mapzen.whosonfirst.importer.quattroshapes.localadmin_importer(dest, **obj_args)
 
         elif options.place == 'locality':
             imprtr = mapzen.whosonfirst.importer.quattroshapes.locality_importer(dest, **obj_args)

@@ -3,16 +3,21 @@ import mapzen.whosonfirst.importer
 class qs_importer(mapzen.whosonfirst.importer.base):
 
     def massage_qs_properties(self, props):
-        
+
+        qsid = props.get('qs_id', None)
         woeid = props.get('qs_woe_id', None)
         gnid = props.get('qs_gn_id', None)
 
-        if woeid or gnid:
+        if woeid or gnid or qsid:
 
             concordances = {}
             
+            if qsid:
+                concordances['qs:id'] = qsid
+
             if woeid:
                 concordances['gp:id'] = woeid
+
             if gnid:
                 concordances['gn:id'] = gnid
 
@@ -76,21 +81,27 @@ class adm1_importer(qs_importer):
         f['properties'] = props
         # pass-by-ref
 
-# regions... but different... or something
+# macroregions
 
 class adm1_region_importer(qs_importer):
 
     def massage_feature(self, f):
 
-        logging.error("WHY ARE YOU RUNNING THIS")
-        sys.exit()
-
         props = f['properties']
 
         props['src:geom'] = 'quattroshapes'
-        props['wof:placetype'] = 'region'	# DOUBLE CHECK
+        props['wof:placetype'] = 'macroregion' 
 
-        props['wof:name'] = 'FIX ME'
+        name = props.get('qs_a1r', '')
+        name = name.title()
+
+        props['wof:name'] = name
+
+        alt = props.get('qs_a1r_alt', '')
+
+        if alt != None and alt != '':
+            alt = alt.title()
+            props['name:und_x_variant'] = [ alt ]
 
         props = self.massage_qs_properties(props)
 
@@ -114,7 +125,7 @@ class adm2_importer(mapzen.whosonfirst.importer.base):
         f['properties'] = props
         # pass-by-ref
 
-# counties... but different... that are regions... or something
+# macrocounties
 
 class adm2_region_importer(qs_importer):
 
@@ -126,30 +137,45 @@ class adm2_region_importer(qs_importer):
         props = f['properties']
 
         props['src:geom'] = 'quattroshapes'
-        props['wof:placetype'] = 'FIX ME'
+        props['wof:placetype'] = 'macrocounty'
 
-        props['wof:name'] = 'FIX ME'
+        name = props.get('qs_a2r', '')
+        name = name.title()
+
+        props['wof:name'] = name
+
+        alt = props.get('qs_a2r_alt', '')
+
+        if alt != None and alt != '':
+            alt = alt.title()
+            props['name:und_x_variant'] = [ alt ]
 
         props = self.massage_qs_properties(props)
 
         f['properties'] = props
         # pass-by-ref
 
-# localadmins which are... what exactly
+# localadmins
 
 class localadmin_importer(qs_importer):
 
     def massage_feature(self, f):
 
-        logging.error("WHY ARE YOU RUNNING THIS")
-        sys.exit()
-
         props = f['properties']
 
         props['src:geom'] = 'quattroshapes'
-        props['wof:placetype'] = 'FIX ME'
+        props['wof:placetype'] = 'localadmin'
 
-        props['wof:name'] = 'FIX ME'
+        name = props.get('qs_la', '')
+        name = name.title()
+
+        alt = props.get('qs_la_alt', '')
+
+        props['wof:name'] = name
+
+        if alt != None and alt != '':
+            alt = alt.title()
+            props['name:und_x_variant'] = [ alt ]
 
         props = self.massage_qs_properties(props)
 
