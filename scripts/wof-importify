@@ -21,7 +21,6 @@ def import_feature(importer, feature, args, options):
         logging.basicConfig(level=logging.INFO)
 
     try:
-        logging.debug("import %s" % pprint.pformat(feature))
 
         path = importer.import_feature(feature, **args)
         logging.debug("importified %s" % path)
@@ -31,6 +30,8 @@ def import_feature(importer, feature, args, options):
     except Exception, e:
         logging.error("Failed to process feature because %s" % e)
         logging.debug(traceback.extract_stack())
+        logging.debug("feature is a %s" % type(feature))
+        logging.debug("import %s" % pprint.pformat(feature))
 
         raise Exception, e
 
@@ -257,7 +258,8 @@ if __name__ == '__main__':
                 if options.multi:
                     pool.apply_async(import_feature, (imprtr, f, import_args, options))
                 else:
-                    import_feature(imprtr, data, import_args, options)
+                    import_feature(imprtr, f, import_args, options)
+                    sys.exit()
 
         if options.multi:
             pool.close()

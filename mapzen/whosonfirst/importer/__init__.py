@@ -94,9 +94,12 @@ class base(mapzen.whosonfirst.export.flatfile):
 
     def append_hierarchy_and_parent(self, feature, **kwargs):
 
+        logging.error("I AM HERE")
         if not self.reversegeo:
             logging.warning("reverse geo is not enabled, can not append hierarchy")
             return
 
         qry = self.spatial_qry()
         qry.append_hierarchy_and_parent(feature)
+
+        logging.error("WUB WUB WUB")

@@ -2,7 +2,15 @@ import mapzen.whosonfirst.importer
 
 class qs_importer(mapzen.whosonfirst.importer.base):
 
+    # Note this is just properties - we end up calling
+    # self.append_hierarchy_and_parent(f) over and over
+    # below because (f)eature and because I can't be 
+    # bothered to add YA meta wrapper thingy right now
+    # (20151012/thisisaaronland)
+
     def massage_qs_properties(self, props):
+
+        concordances = {}
 
         qsid = props.get('qs_id', None)
         woeid = props.get('qs_woe_id', None)
@@ -10,7 +18,6 @@ class qs_importer(mapzen.whosonfirst.importer.base):
 
         if woeid or gnid or qsid:
 
-            concordances = {}
             
             if qsid:
                 concordances['qs:id'] = qsid
@@ -21,7 +28,7 @@ class qs_importer(mapzen.whosonfirst.importer.base):
             if gnid:
                 concordances['gn:id'] = gnid
 
-            props['wof:concordances'] = concordances
+        props['wof:concordances'] = concordances
 
         iso = props.get('qs_iso_cc', None)
 
@@ -59,8 +66,9 @@ class adm0_importer(qs_importer):
         props['wof:placetype'] = 'country'
 
         props = self.massage_qs_properties(props)
-
         f['properties'] = props
+
+        self.append_hierarchy_and_parent(f)
         # pass-by-ref
 
 # regions
@@ -77,8 +85,9 @@ class adm1_importer(qs_importer):
         props['wof:name'] = props['qs_a1']
 
         props = self.massage_qs_properties(props)
-
         f['properties'] = props
+
+        self.append_hierarchy_and_parent(f)
         # pass-by-ref
 
 # macroregions
@@ -104,8 +113,9 @@ class adm1_region_importer(qs_importer):
             props['name:und_x_variant'] = [ alt ]
 
         props = self.massage_qs_properties(props)
-
         f['properties'] = props
+
+        self.append_hierarchy_and_parent(f)
         # pass-by-ref
 
 # counties (or whatever we end up calling them)
@@ -121,8 +131,9 @@ class adm2_importer(mapzen.whosonfirst.importer.base):
         props['wof:name'] = props['qs_a2']
 
         props = self.massage_qs_properties(props)
-
         f['properties'] = props
+
+        self.append_hierarchy_and_parent(f)
         # pass-by-ref
 
 # macrocounties
@@ -151,8 +162,9 @@ class adm2_region_importer(qs_importer):
             props['name:und_x_variant'] = [ alt ]
 
         props = self.massage_qs_properties(props)
-
         f['properties'] = props
+
+        self.append_hierarchy_and_parent(f)
         # pass-by-ref
 
 # localadmins
@@ -178,8 +190,9 @@ class localadmin_importer(qs_importer):
             props['name:und_x_variant'] = [ alt ]
 
         props = self.massage_qs_properties(props)
-
         f['properties'] = props
+
+        self.append_hierarchy_and_parent(f)
         # pass-by-ref
 
 # localities
@@ -195,8 +208,9 @@ class locality_importer(qs_importer):
         props['wof:name'] = props['qs_loc']
 
         props = self.massage_qs_properties(props)
-
         f['properties'] = props
+
+        self.append_hierarchy_and_parent(f)
         # pass-by-ref
 
 # neighbourhoods
@@ -213,6 +227,7 @@ class neighbourhood_importer(qs_importer):
         props['wof:name'] = props['name']
 
         props = self.massage_qs_properties(props)
-
         f['properties'] = props
+
+        self.append_hierarchy_and_parent(f)
         # pass-by-ref
