@@ -1,6 +1,12 @@
 import mapzen.whosonfirst.importer
+import logging
 
 class qs_importer(mapzen.whosonfirst.importer.base):
+
+    def has_concordance(self, f):
+
+        geom = mapzen.whosonfirst.utils.hash_geom(f)
+        return self.has_concordance_lookup(geom, 'wof:geomhash')
 
     # Note this is just properties - we end up calling
     # self.append_hierarchy_and_parent(f) over and over
@@ -102,15 +108,22 @@ class adm1_region_importer(qs_importer):
         props['wof:placetype'] = 'macroregion' 
 
         name = props.get('qs_a1r', '')
-        name = name.title()
+
+        try:
+            name = name.title()
+        except Exception, e:
+            pass
 
         props['wof:name'] = name
 
         alt = props.get('qs_a1r_alt', '')
 
-        if alt != None and alt != '':
-            alt = alt.title()
-            props['name:und_x_variant'] = [ alt ]
+        try:
+            if alt != None and alt != '':
+                alt = alt.title()
+                props['name:und_x_variant'] = [ alt ]
+        except Exception, e:
+            pass
 
         props = self.massage_qs_properties(props)
         f['properties'] = props
@@ -142,9 +155,6 @@ class adm2_region_importer(qs_importer):
 
     def massage_feature(self, f):
 
-        logging.error("WHY ARE YOU RUNNING THIS")
-        sys.exit()
-
         props = f['properties']
 
         props['src:geom'] = 'quattroshapes'
@@ -157,9 +167,12 @@ class adm2_region_importer(qs_importer):
 
         alt = props.get('qs_a2r_alt', '')
 
-        if alt != None and alt != '':
-            alt = alt.title()
-            props['name:und_x_variant'] = [ alt ]
+        try:
+            if alt != None and alt != '':
+                alt = alt.title()
+                props['name:und_x_variant'] = [ alt ]
+        except Exception, e:
+            pass
 
         props = self.massage_qs_properties(props)
         f['properties'] = props
@@ -179,7 +192,11 @@ class localadmin_importer(qs_importer):
         props['wof:placetype'] = 'localadmin'
 
         name = props.get('qs_la', '')
-        name = name.title()
+        
+        try:
+            name = name.title()
+        except Exception, e:
+            pass
 
         alt = props.get('qs_la_alt', '')
 

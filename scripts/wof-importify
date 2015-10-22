@@ -255,11 +255,14 @@ if __name__ == '__main__':
 
             for f in data['features']:
 
+                if not f['geometry']:
+                    logging.error("feature is missing a geometry")
+                    continue
+
                 if options.multi:
                     pool.apply_async(import_feature, (imprtr, f, import_args, options))
                 else:
                     import_feature(imprtr, f, import_args, options)
-                    sys.exit()
 
         if options.multi:
             pool.close()
