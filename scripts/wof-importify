@@ -131,6 +131,18 @@ if __name__ == '__main__':
         import mapzen.whosonfirst.importer.simplegeo
         imprtr = mapzen.whosonfirst.importer.simplegeo.importer(dest, **obj_args)
 
+    elif options.source == 'naturalearth':
+
+        import mapzen.whosonfirst.importer.naturalearth
+
+        if options.place == 'marine':
+
+            imprtr = mapzen.whosonfirst.importer.naturalearth.marine_importer(dest, **obj_args)
+
+        else:
+            logging.error("Invalid place or missing placetype")
+            sys.exit()
+
     elif options.source == 'quattroshapes':
 
         import mapzen.whosonfirst.importer.quattroshapes

@@ -8,19 +8,25 @@ class ne_importer(mapzen.whosonfirst.importer.base):
         geom = mapzen.whosonfirst.utils.hash_geom(f)
         return self.has_concordance_lookup(geom, 'wof:geomhash')
 
-class ne_marine_importer(ne_importer):
+class marine_importer(ne_importer):
 
     def massage_feature(self, f):
 
+        props = f['properties']
+
         placetype = 'marinearea'
 
-        if f['featurecla'] == 'ocean':
+        if props['featurecla'] == 'ocean':
             placetype = 'ocean'
 
         props['src:geom'] = 'naturalearth'
 
-        name = f['name']
-        name = name.title()
+        name = props['name']
+
+        if name == None:
+            name = ""
+        else:
+            name = name.title()
 
         props['wof:name'] = name
         props['wof:placetype'] = placetype
@@ -35,5 +41,12 @@ class ne_marine_importer(ne_importer):
 
             del(props[ k ])
 
+        f['properties'] = props
+
         self.append_hierarchy_and_parent(f)
+
+        if placetype == 'ocean' and f['properties']['wof:parent_id'] == -1:
+            f['properties']['wof:parent_id'] = 0
+            f['properties']['wof:hierarchy'] = [ { 'planet_id': 0 } ]
+
         # pass-by-ref
