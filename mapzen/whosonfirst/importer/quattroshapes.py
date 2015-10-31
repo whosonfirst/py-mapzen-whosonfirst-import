@@ -16,14 +16,15 @@ class qs_importer(mapzen.whosonfirst.importer.base):
 
     def massage_qs_properties(self, props):
 
-        concordances = {}
+        # See below in the "concordances" importer
+
+        concordances = props.get('wof:concordances', {})
 
         qsid = props.get('qs_id', None)
         woeid = props.get('qs_woe_id', None)
         gnid = props.get('qs_gn_id', None)
 
         if woeid or gnid or qsid:
-
             
             if qsid:
                 concordances['qs:id'] = qsid
@@ -56,25 +57,56 @@ class qs_importer(mapzen.whosonfirst.importer.base):
 
         return props
 
-# concordances (because whatever)
-# seriously don't spend any time thinking about the name... it's just
-# the history of QS...it's not a big deal
+# concordances (because whatever) seriously don't spend any time thinking
+# about the name... it's just the history of QS...it's not a big deal
 # see also: quattroshapes_gazetteer_gp_then_gn.geojson
+# see also-er: https://github.com/whosonfirst/whosonfirst-data/issues/107
 
 class concordances_importer(mapzen.whosonfirst.importer.base):
+
+    def has_concordance(self, f):
+
+        # BUT WAIT! IF I AM THE "CONCORDANCES" FILE (see below)
+        # THEN WE FIRST NEED TO CHECK qs:id and gp:id (WOE) and
+        # then gn:id BECAUSE SOME OF THEM HAVE ALREADY BEEN IMPORTED. FOR
+        # EXAMPLE: https://whosonfirst.mapzen.com/spelunker/id/85864475/
+        # (20151030/thisissaaronland)
+
+        props = f['properties']
+
+        for other_src in ('qs_id', 'woe_id', 'gn_id'):
+
+            if not props.get(other_src, False):
+                continue
+
+            other_id = props[other_src]
+
+            has_c = self.has_concordance_lookup(other_id, other_src)
+            logging.debug("HAS %s:%s concordance %s" % (other_src, other_id, has_c))
+
+            if has_c:
+                return True
+
+        geom = mapzen.whosonfirst.utils.hash_geom(f)
+        return self.has_concordance_lookup(geom, 'wof:geomhash')
 
     def massage_feature(self, f):
 
         props = f['properties']
-        
-        props['qs:id'] = props['qs_id']
 
         props['wof:name'] = props['name']
         props['wof:source'] = 'quattroshapes'
         props['qs:source'] = 'gazetteer'
-        props['wof:placetype'] = 'locality'	# because "unitary local admin" ... whatever that is (talk to kelso)
 
-        concordances = {}
+        if props['placetype'] == 'Suburb':
+            props['wof:placetype'] = 'neighbourhood'
+        else:
+            props['wof:placetype'] = 'locality'	# because "unitary local admin" ... whatever that is (talk to kelso)
+
+        concordances = props.get('wof:concordances', {})
+
+        if props.get('qs_id', False):
+            concordances['qs:id'] = props['qs_id']
 
         if props.get('woe_id', False):
             concordances['gp:id'] = props['woe_id']
@@ -84,6 +116,11 @@ class concordances_importer(mapzen.whosonfirst.importer.base):
 
         if len(concordance.keys()) > 0:
             props['wof:concordances'] = concordances
+
+        props = self.massage_qs_properties(props)
+        f['properties'] = props
+
+        self.append_hierarchy_and_parent(f)
 
         f['properties'] = props
         # pass-by-ref

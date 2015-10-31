@@ -171,6 +171,9 @@ if __name__ == '__main__':
         elif options.place == 'neighbourhood' or options.place == 'neighborhood':
             imprtr = mapzen.whosonfirst.importer.quattroshapes.neighbourhood_importer(dest, **obj_args)
 
+        elif options.place == 'concordances':
+            imprtr = mapzen.whosonfirst.importer.quattroshapes.concordances_importer(dest, **obj_args)
+
         else:
             logging.error("Invalid place or missing placetype")
             sys.exit()
