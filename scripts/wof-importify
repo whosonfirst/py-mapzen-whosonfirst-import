@@ -21,7 +21,6 @@ def import_feature(importer, feature, args, options):
         logging.basicConfig(level=logging.INFO)
 
     try:
-        logging.debug("import %s" % pprint.pformat(feature))
 
         path = importer.import_feature(feature, **args)
         logging.debug("importified %s" % path)
@@ -31,6 +30,8 @@ def import_feature(importer, feature, args, options):
     except Exception, e:
         logging.error("Failed to process feature because %s" % e)
         logging.debug(traceback.extract_stack())
+        logging.debug("feature is a %s" % type(feature))
+        logging.debug("import %s" % pprint.pformat(feature))
 
         raise Exception, e
 
@@ -130,6 +131,18 @@ if __name__ == '__main__':
         import mapzen.whosonfirst.importer.simplegeo
         imprtr = mapzen.whosonfirst.importer.simplegeo.importer(dest, **obj_args)
 
+    elif options.source == 'naturalearth':
+
+        import mapzen.whosonfirst.importer.naturalearth
+
+        if options.place == 'marine':
+
+            imprtr = mapzen.whosonfirst.importer.naturalearth.marine_importer(dest, **obj_args)
+
+        else:
+            logging.error("Invalid place or missing placetype")
+            sys.exit()
+
     elif options.source == 'quattroshapes':
 
         import mapzen.whosonfirst.importer.quattroshapes
@@ -140,8 +153,17 @@ if __name__ == '__main__':
         elif options.place == 'region' or options.place == 'adm1':
             imprtr = mapzen.whosonfirst.importer.quattroshapes.adm1_importer(dest, **obj_args)
 
+        elif options.place == 'macroregion' or options.place == 'adm1_region':
+            imprtr = mapzen.whosonfirst.importer.quattroshapes.adm1_region_importer(dest, **obj_args)
+
         elif options.place == 'county' or options.place == 'adm2':
             imprtr = mapzen.whosonfirst.importer.quattroshapes.adm2_importer(dest, **obj_args)
+
+        elif options.place == 'macrocounty' or options.place == 'adm2_region':
+            imprtr = mapzen.whosonfirst.importer.quattroshapes.adm2_region_importer(dest, **obj_args)
+
+        elif options.place == 'localadmin':
+            imprtr = mapzen.whosonfirst.importer.quattroshapes.localadmin_importer(dest, **obj_args)
 
         elif options.place == 'locality':
             imprtr = mapzen.whosonfirst.importer.quattroshapes.locality_importer(dest, **obj_args)
@@ -245,10 +267,14 @@ if __name__ == '__main__':
 
             for f in data['features']:
 
+                if not f['geometry']:
+                    logging.error("feature is missing a geometry")
+                    continue
+
                 if options.multi:
                     pool.apply_async(import_feature, (imprtr, f, import_args, options))
                 else:
-                    import_feature(imprtr, data, import_args, options)
+                    import_feature(imprtr, f, import_args, options)
 
         if options.multi:
             pool.close()

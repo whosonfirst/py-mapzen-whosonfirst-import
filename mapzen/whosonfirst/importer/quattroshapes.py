@@ -1,5 +1,60 @@
 import mapzen.whosonfirst.importer
-import woe.isthat
+import logging
+
+class qs_importer(mapzen.whosonfirst.importer.base):
+
+    def has_concordance(self, f):
+
+        geom = mapzen.whosonfirst.utils.hash_geom(f)
+        return self.has_concordance_lookup(geom, 'wof:geomhash')
+
+    # Note this is just properties - we end up calling
+    # self.append_hierarchy_and_parent(f) over and over
+    # below because (f)eature and because I can't be 
+    # bothered to add YA meta wrapper thingy right now
+    # (20151012/thisisaaronland)
+
+    def massage_qs_properties(self, props):
+
+        concordances = {}
+
+        qsid = props.get('qs_id', None)
+        woeid = props.get('qs_woe_id', None)
+        gnid = props.get('qs_gn_id', None)
+
+        if woeid or gnid or qsid:
+
+            
+            if qsid:
+                concordances['qs:id'] = qsid
+
+            if woeid:
+                concordances['gp:id'] = woeid
+
+            if gnid:
+                concordances['gn:id'] = gnid
+
+        props['wof:concordances'] = concordances
+
+        iso = props.get('qs_iso_cc', None)
+
+        if iso:
+            del(props['qs_iso_cc'])
+            props['iso:country'] = iso
+            props['wof:country'] = iso
+
+        for k, v in props.items():
+            
+            if k.startswith("qs_"):
+                
+                new_k = k.replace("qs_", "qs:")
+
+                if v:                    
+                    props[new_k] = v
+
+                del(props[k])
+
+        return props
 
 # concordances (because whatever)
 # seriously don't spend any time thinking about the name... it's just
@@ -35,7 +90,7 @@ class concordances_importer(mapzen.whosonfirst.importer.base):
 
 # countries
 
-class adm0_importer(mapzen.whosonfirst.importer.base):
+class adm0_importer(qs_importer):
 
     def massage_feature(self, f):
 
@@ -45,18 +100,18 @@ class adm0_importer(mapzen.whosonfirst.importer.base):
         props['qs:id'] = props['qs_iso_cc']
 
         props['wof:name'] = props['qs_adm0']
-        props['wof:source'] = 'quattroshapes'
+        props['src:geom'] = 'quattroshapes'
         props['wof:placetype'] = 'country'
 
+        props = self.massage_qs_properties(props)
         f['properties'] = props
+
+        self.append_hierarchy_and_parent(f)
         # pass-by-ref
 
 # regions
 
-class adm1_importer(mapzen.whosonfirst.importer.base):
-
-    # note - this needs to be taught how to deal with adm1_region
-    # thingies from quattroshapes (20150625/thisisaaronland)
+class adm1_importer(qs_importer):
 
     def massage_feature(self, f):
 
@@ -67,19 +122,45 @@ class adm1_importer(mapzen.whosonfirst.importer.base):
 
         props['wof:name'] = props['qs_a1']
 
-        woeid = props.get('qs_woe_id', None)
-
-        """
-        if woeid:
-            props['woe:id'] = woeid
-        """
-
-        iso = props.get('qs_iso_cc', None)
-
-        if iso:
-            props['iso:country'] = iso
-
+        props = self.massage_qs_properties(props)
         f['properties'] = props
+
+        self.append_hierarchy_and_parent(f)
+        # pass-by-ref
+
+# macroregions
+
+class adm1_region_importer(qs_importer):
+
+    def massage_feature(self, f):
+
+        props = f['properties']
+
+        props['src:geom'] = 'quattroshapes'
+        props['wof:placetype'] = 'macroregion' 
+
+        name = props.get('qs_a1r', '')
+
+        try:
+            name = name.title()
+        except Exception, e:
+            pass
+
+        props['wof:name'] = name
+
+        alt = props.get('qs_a1r_alt', '')
+
+        try:
+            if alt != None and alt != '':
+                alt = alt.title()
+                props['name:und_x_variant'] = [ alt ]
+        except Exception, e:
+            pass
+
+        props = self.massage_qs_properties(props)
+        f['properties'] = props
+
+        self.append_hierarchy_and_parent(f)
         # pass-by-ref
 
 # counties (or whatever we end up calling them)
@@ -90,92 +171,112 @@ class adm2_importer(mapzen.whosonfirst.importer.base):
 
         props = f['properties']
 
-        props['wof:source'] = 'quattroshapes'
+        props['src:geom'] = 'quattroshapes'
         props['wof:placetype'] = 'county'
-
         props['wof:name'] = props['qs_a2']
 
-        woeid = props.get('qs_woe_id', None)
-        gnid = props.get('qs_gn_id', None)
-
-        if woeid:
-            props['woe:id'] = woeid
-
-        iso = props.get('qs_iso_cc', None)
-
-        if iso:
-            del(props['qs_iso_cc'])
-            props['iso:country'] = iso
-
-        for k, v in props.items():
-            
-            if k.startswith("qs_"):
-                
-                new_k = k.replace("qs_", "qs:")
-
-                if v:                    
-                    props[new_k] = v
-
-                del(props[k])
-
+        props = self.massage_qs_properties(props)
         f['properties'] = props
+
+        self.append_hierarchy_and_parent(f)
+        # pass-by-ref
+
+# macrocounties
+
+class adm2_region_importer(qs_importer):
+
+    def massage_feature(self, f):
+
+        props = f['properties']
+
+        props['src:geom'] = 'quattroshapes'
+        props['wof:placetype'] = 'macrocounty'
+
+        name = props.get('qs_a2r', '')
+        name = name.title()
+
+        props['wof:name'] = name
+
+        alt = props.get('qs_a2r_alt', '')
+
+        try:
+            if alt != None and alt != '':
+                alt = alt.title()
+                props['name:und_x_variant'] = [ alt ]
+        except Exception, e:
+            pass
+
+        props = self.massage_qs_properties(props)
+        f['properties'] = props
+
+        self.append_hierarchy_and_parent(f)
+        # pass-by-ref
+
+# localadmins
+
+class localadmin_importer(qs_importer):
+
+    def massage_feature(self, f):
+
+        props = f['properties']
+
+        props['src:geom'] = 'quattroshapes'
+        props['wof:placetype'] = 'localadmin'
+
+        name = props.get('qs_la', '')
+        
+        try:
+            name = name.title()
+        except Exception, e:
+            pass
+
+        alt = props.get('qs_la_alt', '')
+
+        props['wof:name'] = name
+
+        if alt != None and alt != '':
+            alt = alt.title()
+            props['name:und_x_variant'] = [ alt ]
+
+        props = self.massage_qs_properties(props)
+        f['properties'] = props
+
+        self.append_hierarchy_and_parent(f)
         # pass-by-ref
 
 # localities
 
-class locality_importer(mapzen.whosonfirst.importer.base):
+class locality_importer(qs_importer):
 
     def massage_feature(self, f):
 
         props = f['properties']
 
-        props['wof:source'] = 'quattroshapes'
+        props['src:geom'] = 'quattroshapes'
         props['wof:placetype'] = 'locality'
         props['wof:name'] = props['qs_loc']
 
-        woeid = props.get('qs_woe_id', None)
-
-        if woeid:
-            props['woe:id'] = woeid
-
-        gnid = props.get('qs_gn_id', None)
-
-        if gnid:
-            props['geonames:id'] = gnid
-
-        # because stuff like this - u'qs_iso_cc': u'U',
-        # (20150626/thisisaaronland)
-
-        iso = props.get('qs_iso_cc', None)
-
-        if iso and len(iso) == 2:
-            props['iso:country'] = iso
-
+        props = self.massage_qs_properties(props)
         f['properties'] = props
+
+        self.append_hierarchy_and_parent(f)
         # pass-by-ref
 
 # neighbourhoods
 
-class neighbourhood_importer(mapzen.whosonfirst.importer.base):
+class neighbourhood_importer(qs_importer):
 
     def massage_feature(self, f):
 
         props = f['properties']
 
-        props['wof:source'] = 'quattroshapes'
+        props['src:geom'] = 'quattroshapes'
         props['wof:placetype'] = 'neighbourhood'
 
         props['wof:name'] = props['name']
 
-        woeid = props.get('woe_id', None)
-
-        if woeid:
-            props['woe:id'] = woeid
-
-        gnid = props.get('gn_id', None)
-
-        if gnid:
-            props['geonames:id'] = gnid
-
+        props = self.massage_qs_properties(props)
         f['properties'] = props
+
+        self.append_hierarchy_and_parent(f)
         # pass-by-ref
