@@ -1,6 +1,38 @@
 import mapzen.whosonfirst.importer
 import woe.isthat
 
+# concordances (because whatever)
+# seriously don't spend any time thinking about the name... it's just
+# the history of QS...it's not a big deal
+# see also: quattroshapes_gazetteer_gp_then_gn.geojson
+
+class concordances_importer(mapzen.whosonfirst.importer.base):
+
+    def massage_feature(self, f):
+
+        props = f['properties']
+        
+        props['qs:id'] = props['qs_id']
+
+        props['wof:name'] = props['name']
+        props['wof:source'] = 'quattroshapes'
+        props['qs:source'] = 'gazetteer'
+        props['wof:placetype'] = 'locality'	# because "unitary local admin" ... whatever that is (talk to kelso)
+
+        concordances = {}
+
+        if props.get('woe_id', False):
+            concordances['gp:id'] = props['woe_id']
+
+        if props.get('gn_id', False):
+            concordances['gn:id'] = props['gn_id']
+
+        if len(concordance.keys()) > 0:
+            props['wof:concordances'] = concordances
+
+        f['properties'] = props
+        # pass-by-ref
+
 # countries
 
 class adm0_importer(mapzen.whosonfirst.importer.base):
