@@ -40,6 +40,12 @@ class importer(mapzen.whosonfirst.importer.base):
             props['iso:country'] = props['sg:country']
             del(props['sg:country'])
 
+        # see also:
+        # https://github.com/whosonfirst/whosonfirst-sources/issues/2
+
+        if props.get('sg:href', None):
+            del(props['sg:href'])
+
         if sgid:
             concordances = props.get('wof:concordances', {})
             concordances['sg:id'] = sgid
