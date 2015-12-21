@@ -108,6 +108,7 @@ class base(mapzen.whosonfirst.export.flatfile):
     def append_hierarchy_and_parent_pip(self, feature, **kwargs):
 
         props = feature['properties']
+        placetype = props['wof:placetype']
 
         lat = props.get('geom:latitude', None)
         lon = props.get'geom:longitude', None)
@@ -120,12 +121,42 @@ class base(mapzen.whosonfirst.export.flatfile):
             lat = coords.y
             lon = coords.x
 
-        # THIS - THIS IS THE WORK - FIGURE OUT SERVERS BASED ON PLACETYPE!
+        # SEE THIS - THIS IS THE WORK
+        # We are trying to figure out the hierarchy for a given placetype
+        # which may have more than one immediate parent (for example a 
+        # neighbourhood might be parented by a macrohood -or- a locality).
+        # We are using the go-whosonfirst-pip server for this. See the way
+        # we are hard-coding port numbers? So yeah... that is NOT the way
+        # we want to keep doing this. On the other hand we're just trying to
+        # get it to work at all right now so we'll live with it...
 
-        servers = []
+        all_servers = {
+            'continent': 9999,
+            'country': 7777,
+            'region': 4444,
+            'county': 3333,
+            'locality': 6666,
+            'macrohood': 2222,
+            'neighbourhood': 5555,
+        }
+
+        pt = mapzen.whosonfirst.placetypes.placetype(placetype)
+
         _hiers = []
 
-        for server in servers:
+        for parent in pt.parents:
+
+            parent = str(parent)
+            port = all_servers.get(parent, None)
+
+            if not port:
+                logging.error("OH NO... CAN NOT FIND PIP PORT FOR %s" % parent)
+                sys.exit()
+
+            server = mapzen.whosonfirst.pip(port=port)
+
+            # TO DO: some kind of 'ping' to make sure the server is actually
+            # there... (20151221/thisisaaronland)
 
             rsp = server.reverse_geocode(lat, lon)
 
@@ -146,11 +177,11 @@ class base(mapzen.whosonfirst.export.flatfile):
                 _hiers.append(h)
 
         if len(_rsp) == 0:
-            # print "SAD %s" % props['wof:parent_id']
+            logging.warning("Failed to reverse geocode any parents for %s, %s" % (lat, lon))
             return False
 
         if len(_rsp) != 1:  
-            logging.warning("MULTIPLE POSSIBILITIES FOR %s, %s" % (lat, lon))
+            logging.warning("Multiple reverse geocoding possibilities %s, %s" % (lat, lon))
             return False
 
         if len(_hiers) == 0:
@@ -162,3 +193,5 @@ class base(mapzen.whosonfirst.export.flatfile):
         props['wof:hierarchy'] = _hiers
         feature['properties'] = props
 
+        return True
+        
