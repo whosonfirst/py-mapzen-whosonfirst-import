@@ -9,6 +9,7 @@ import json
 import random
 import mapzen.whosonfirst.export
 import mapzen.whosonfirst.spatial
+import mapzen.whosonfirst.pip
 import mapzen.whosonfirst.placetypes
 
 class base(mapzen.whosonfirst.export.flatfile):
@@ -103,3 +104,61 @@ class base(mapzen.whosonfirst.export.flatfile):
         qry.append_hierarchy_and_parent(feature)
 
         logging.error("WUB WUB WUB")
+
+    def append_hierarchy_and_parent_pip(self, feature, **kwargs):
+
+        props = feature['properties']
+
+        lat = props.get('geom:latitude', None)
+        lon = props.get'geom:longitude', None)
+
+        if not lat or not lon:
+
+            shp = shapely.geometry.asShape(feature['geometry'])
+            coords = shp.centroid
+
+            lat = coords.y
+            lon = coords.x
+
+        # THIS - THIS IS THE WORK - FIGURE OUT SERVERS BASED ON PLACETYPE!
+
+        servers = []
+        _hiers = []
+
+        for server in servers:
+
+            rsp = server.reverse_geocode(lat, lon)
+
+            if len(rsp):
+                _rsp = rsp
+                break
+
+        for r in _rsp:
+            id = r['Id']
+            pf = mapzen.whosonfirst.utils.load(data, id)
+            pp = pf['properties']
+            ph = pp['wof:hierarchy']
+
+            for h in ph:
+
+                k = "%s_id" % options.placetype
+                h[k] = wofid
+                _hiers.append(h)
+
+        if len(_rsp) == 0:
+            # print "SAD %s" % props['wof:parent_id']
+            return False
+
+        if len(_rsp) != 1:  
+            logging.warning("MULTIPLE POSSIBILITIES FOR %s, %s" % (lat, lon))
+            return False
+
+        if len(_hiers) == 0:
+            return True
+
+        parent_id = _rsp[0]['Id']
+        props['wof:parent_id'] = parent_id
+
+        props['wof:hierarchy'] = _hiers
+        feature['properties'] = props
+
