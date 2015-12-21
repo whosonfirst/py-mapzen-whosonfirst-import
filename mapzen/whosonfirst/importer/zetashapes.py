@@ -20,7 +20,7 @@ class importer(mapzen.whosonfirst.importer.base):
 
         for k, v in props.items():
             zs_k = "zs:%s" % k
-            props[sg_k] = v
+            props[zs_k] = v
             del(props[k])
             
         props['src:geom'] = 'zetashapes'
