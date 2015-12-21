@@ -111,7 +111,7 @@ class base(mapzen.whosonfirst.export.flatfile):
         placetype = props['wof:placetype']
 
         lat = props.get('geom:latitude', None)
-        lon = props.get'geom:longitude', None)
+        lon = props.get('geom:longitude', None)
 
         if not lat or not lon:
 
@@ -144,7 +144,7 @@ class base(mapzen.whosonfirst.export.flatfile):
 
         _hiers = []
 
-        for parent in pt.parents:
+        for parent in pt.parents():
 
             parent = str(parent)
             port = all_servers.get(parent, None)
@@ -153,7 +153,7 @@ class base(mapzen.whosonfirst.export.flatfile):
                 logging.error("OH NO... CAN NOT FIND PIP PORT FOR %s" % parent)
                 sys.exit()
 
-            server = mapzen.whosonfirst.pip(port=port)
+            server = mapzen.whosonfirst.pip.server(port=port)
 
             # TO DO: some kind of 'ping' to make sure the server is actually
             # there... (20151221/thisisaaronland)
@@ -166,14 +166,14 @@ class base(mapzen.whosonfirst.export.flatfile):
 
         for r in _rsp:
             id = r['Id']
-            pf = mapzen.whosonfirst.utils.load(data, id)
+            pf = mapzen.whosonfirst.utils.load(self.root, id)
             pp = pf['properties']
             ph = pp['wof:hierarchy']
 
             for h in ph:
 
-                k = "%s_id" % options.placetype
-                h[k] = wofid
+                # k = "%s_id" % placetype
+                # h[k] = wofid
                 _hiers.append(h)
 
         if len(_rsp) == 0:
