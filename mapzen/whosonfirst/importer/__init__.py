@@ -143,6 +143,7 @@ class base(mapzen.whosonfirst.export.flatfile):
         pt = mapzen.whosonfirst.placetypes.placetype(placetype)
 
         _hiers = []
+        _rsp = []
 
         for parent in pt.parents():
 
@@ -180,7 +181,7 @@ class base(mapzen.whosonfirst.export.flatfile):
             logging.warning("Failed to reverse geocode any parents for %s, %s" % (lat, lon))
             return False
 
-        if len(_rsp) != 1:  
+        if len(_rsp) > 1:  
             logging.warning("Multiple reverse geocoding possibilities %s, %s" % (lat, lon))
             return False
 
