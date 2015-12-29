@@ -110,8 +110,12 @@ class base(mapzen.whosonfirst.export.flatfile):
         props = feature['properties']
         placetype = props['wof:placetype']
 
-        lat = props.get('geom:latitude', None)
-        lon = props.get('geom:longitude', None)
+        lat = props.get('lbl:latitude', None)
+        lon = props.get('lbl:longitude', None)
+
+        if not lat or not lon:
+            lat = props.get('geom:latitude', None)
+            lon = props.get('geom:longitude', None)
 
         if not lat or not lon:
 
