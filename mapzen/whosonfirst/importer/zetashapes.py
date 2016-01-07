@@ -39,3 +39,5 @@ class importer(mapzen.whosonfirst.importer.base):
         f['properties'] = props
 
         self.append_hierarchy_and_parent_pip(f)
+
+        self.append_mapshaper_centroid(f, mapshaper="/usr/local/mapzen/mapshaper/bin/mapshaper")

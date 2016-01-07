@@ -11,6 +11,7 @@ import mapzen.whosonfirst.export
 import mapzen.whosonfirst.spatial
 import mapzen.whosonfirst.pip
 import mapzen.whosonfirst.placetypes
+import mapzen.whosonfirst.mapshaper
 
 class base(mapzen.whosonfirst.export.flatfile):
 
@@ -105,6 +106,9 @@ class base(mapzen.whosonfirst.export.flatfile):
 
         logging.error("WUB WUB WUB")
 
+    # please move me in to py-mz-wof-utils
+    # (20160105/thisisaaronland)
+
     def append_hierarchy_and_parent_pip(self, feature, **kwargs):
 
         props = feature['properties']
@@ -125,24 +129,8 @@ class base(mapzen.whosonfirst.export.flatfile):
             lat = coords.y
             lon = coords.x
 
-        # SEE THIS - THIS IS THE WORK
-        # We are trying to figure out the hierarchy for a given placetype
-        # which may have more than one immediate parent (for example a 
-        # neighbourhood might be parented by a macrohood -or- a locality).
-        # We are using the go-whosonfirst-pip server for this. See the way
-        # we are hard-coding port numbers? So yeah... that is NOT the way
-        # we want to keep doing this. On the other hand we're just trying to
-        # get it to work at all right now so we'll live with it...
-
-        all_servers = {
-            'continent': 9999,
-            'country': 7777,
-            'region': 4444,
-            'county': 3333,
-            'locality': 6666,
-            'macrohood': 2222,
-            'neighbourhood': 5555,
-        }
+        # see also : https://github.com/whosonfirst/go-whosonfirst-pip#wof-pip-server
+        pip = mapzen.whosonfirst.pip.proxy()
 
         pt = mapzen.whosonfirst.placetypes.placetype(placetype)
 
@@ -152,18 +140,11 @@ class base(mapzen.whosonfirst.export.flatfile):
         for parent in pt.parents():
 
             parent = str(parent)
-            port = all_servers.get(parent, None)
-
-            if not port:
-                logging.error("OH NO... CAN NOT FIND PIP PORT FOR %s" % parent)
-                sys.exit()
-
-            server = mapzen.whosonfirst.pip.server(port=port)
 
             # TO DO: some kind of 'ping' to make sure the server is actually
             # there... (20151221/thisisaaronland)
 
-            rsp = server.reverse_geocode(lat, lon)
+            rsp = pip.reverse_geocode(parent, lat, lon)
 
             if len(rsp):
                 _rsp = rsp
@@ -199,4 +180,28 @@ class base(mapzen.whosonfirst.export.flatfile):
         feature['properties'] = props
 
         return True
+
+    # please move me in to py-mz-wof-utils
+    # (20160105/thisisaaronland)
+
+    def append_mapshaper_centroid(self, feature, **kwargs):
+
+        mapshaper = kwargs.get('mapshaper', None)
+
+        if not mapshaper:
+            return False
+
+        ms = mapzen.whosonfirst.mapshaper.cli(mapshaper)
+
+        geom = ms.centroidify(feature=feature) 
+        lon, lat = geom['coordinates'] 
+
+        props = feature['properties']
+
+        props['lbl:latitude'] = lat
+        props['lbl:longitude'] = lon
+        props['src:lbl:centroid'] = 'mapshaper'
+
+        feature['properties'] = props
         
+        return True
