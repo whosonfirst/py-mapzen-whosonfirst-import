@@ -1,12 +1,4 @@
-import mapzen.whosonfirst.importer
-import logging
-
-class qs_importer(mapzen.whosonfirst.importer.base):
-
-    def has_concordance(self, f):
-
-        geom = mapzen.whosonfirst.utils.hash_geom(f)
-        return self.has_concordance_lookup(geom, 'wof:geomhash')
+class qs_importer:
 
     # Note this is just properties - we end up calling
     # self.append_hierarchy_and_parent(f) over and over
@@ -14,7 +6,7 @@ class qs_importer(mapzen.whosonfirst.importer.base):
     # bothered to add YA meta wrapper thingy right now
     # (20151012/thisisaaronland)
 
-    def massage_qs_properties(self, props):
+    def massage_qs_properties(props):
 
         # See below in the "concordances" importer
 
@@ -57,40 +49,7 @@ class qs_importer(mapzen.whosonfirst.importer.base):
 
         return props
 
-# concordances (because whatever) seriously don't spend any time thinking
-# about the name... it's just the history of QS...it's not a big deal
-# see also: quattroshapes_gazetteer_gp_then_gn.geojson
-# see also-er: https://github.com/whosonfirst/whosonfirst-data/issues/107
-
-class concordances_importer(mapzen.whosonfirst.importer.base):
-
-    def has_concordance(self, f):
-
-        # BUT WAIT! IF I AM THE "CONCORDANCES" FILE (see below)
-        # THEN WE FIRST NEED TO CHECK qs:id and gp:id (WOE) and
-        # then gn:id BECAUSE SOME OF THEM HAVE ALREADY BEEN IMPORTED. FOR
-        # EXAMPLE: https://whosonfirst.mapzen.com/spelunker/id/85864475/
-        # (20151030/thisissaaronland)
-
-        props = f['properties']
-
-        for other_src in ('qs_id', 'woe_id', 'gn_id'):
-
-            if not props.get(other_src, False):
-                continue
-
-            other_id = props[other_src]
-
-            has_c = self.has_concordance_lookup(other_id, other_src)
-            logging.debug("HAS %s:%s concordance %s" % (other_src, other_id, has_c))
-
-            if has_c:
-                return True
-
-        geom = mapzen.whosonfirst.utils.hash_geom(f)
-        return self.has_concordance_lookup(geom, 'wof:geomhash')
-
-    def massage_feature(self, f):
+    def massage_feature(f):
 
         props = f['properties']
 
@@ -120,16 +79,16 @@ class concordances_importer(mapzen.whosonfirst.importer.base):
         props = self.massage_qs_properties(props)
         f['properties'] = props
 
-        self.append_hierarchy_and_parent(f)
-
         f['properties'] = props
         # pass-by-ref
 
 # countries
 
-class adm0_importer(qs_importer):
+class adm0_importer:
 
-    def massage_feature(self, f):
+    def massage_feature(f):
+
+        qs_importer.massage_feature(f)
 
         props = f['properties']
         
@@ -140,17 +99,16 @@ class adm0_importer(qs_importer):
         props['src:geom'] = 'quattroshapes'
         props['wof:placetype'] = 'country'
 
-        props = self.massage_qs_properties(props)
+        props = qs_importer.massage_qs_properties(props)
         f['properties'] = props
-
-        self.append_hierarchy_and_parent(f)
-        # pass-by-ref
 
 # regions
 
-class adm1_importer(qs_importer):
+class adm1_importer:
 
-    def massage_feature(self, f):
+    def massage_feature(f):
+
+        qs_importer.massage_feature(f)
 
         props = f['properties']
 
@@ -159,17 +117,18 @@ class adm1_importer(qs_importer):
 
         props['wof:name'] = props['qs_a1']
 
-        props = self.massage_qs_properties(props)
+        props = qs_importer.massage_qs_properties(props)
         f['properties'] = props
 
-        self.append_hierarchy_and_parent(f)
         # pass-by-ref
 
 # macroregions
 
-class adm1_region_importer(qs_importer):
+class adm1_region_importer:
 
-    def massage_feature(self, f):
+    def massage_feature(f):
+
+        qs_importer.massage_feature(f)
 
         props = f['properties']
 
@@ -194,17 +153,16 @@ class adm1_region_importer(qs_importer):
         except Exception, e:
             pass
 
-        props = self.massage_qs_properties(props)
+        props = qs_importer.massage_qs_properties(props)
         f['properties'] = props
-
-        self.append_hierarchy_and_parent(f)
-        # pass-by-ref
 
 # counties (or whatever we end up calling them)
 
-class adm2_importer(mapzen.whosonfirst.importer.base):
+class adm2_importer:
 
-    def massage_feature(self, f):
+    def massage_feature(f):
+
+        qs_importer.massage_feature(f)
 
         props = f['properties']
 
@@ -212,17 +170,16 @@ class adm2_importer(mapzen.whosonfirst.importer.base):
         props['wof:placetype'] = 'county'
         props['wof:name'] = props['qs_a2']
 
-        props = self.massage_qs_properties(props)
+        props = qs_importer.massage_qs_properties(props)
         f['properties'] = props
-
-        self.append_hierarchy_and_parent(f)
-        # pass-by-ref
 
 # macrocounties
 
-class adm2_region_importer(qs_importer):
+class adm2_region_importer:
 
-    def massage_feature(self, f):
+    def massage_feature(f):
+
+        qs_importer.massage_feature(f)
 
         props = f['properties']
 
@@ -243,17 +200,16 @@ class adm2_region_importer(qs_importer):
         except Exception, e:
             pass
 
-        props = self.massage_qs_properties(props)
+        props = qs_importer.massage_qs_properties(props)
         f['properties'] = props
-
-        self.append_hierarchy_and_parent(f)
-        # pass-by-ref
 
 # localadmins
 
-class localadmin_importer(qs_importer):
+class localadmin_importer:
 
-    def massage_feature(self, f):
+    def massage_feature(f):
+
+        qs_importer.massage_feature(f)
 
         props = f['properties']
 
@@ -275,17 +231,16 @@ class localadmin_importer(qs_importer):
             alt = alt.title()
             props['name:und_x_variant'] = [ alt ]
 
-        props = self.massage_qs_properties(props)
+        props = qs_importer.massage_qs_properties(props)
         f['properties'] = props
-
-        self.append_hierarchy_and_parent(f)
-        # pass-by-ref
 
 # localities
 
-class locality_importer(qs_importer):
+class locality_importer:
 
-    def massage_feature(self, f):
+    def massage_feature(f):
+
+        qs_importer.massage_feature(f)
 
         props = f['properties']
 
@@ -293,17 +248,16 @@ class locality_importer(qs_importer):
         props['wof:placetype'] = 'locality'
         props['wof:name'] = props['qs_loc']
 
-        props = self.massage_qs_properties(props)
+        props = qs_importer.massage_qs_properties(props)
         f['properties'] = props
-
-        self.append_hierarchy_and_parent(f)
-        # pass-by-ref
 
 # neighbourhoods
 
-class neighbourhood_importer(qs_importer):
+class neighbourhood_importer:
 
-    def massage_feature(self, f):
+    def massage_feature(f):
+
+        qs_importer.massage_feature(f)
 
         props = f['properties']
 
@@ -312,8 +266,5 @@ class neighbourhood_importer(qs_importer):
 
         props['wof:name'] = props['name']
 
-        props = self.massage_qs_properties(props)
+        props = qs_importer.massage_qs_properties(props)
         f['properties'] = props
-
-        self.append_hierarchy_and_parent(f)
-        # pass-by-ref

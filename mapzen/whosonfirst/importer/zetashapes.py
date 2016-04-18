@@ -1,19 +1,6 @@
-import mapzen.whosonfirst.importer
-import logging
+class importer:
 
-class importer(mapzen.whosonfirst.importer.base):
-
-    def has_concordance(self, f):
-
-        if not self.concordances:
-            return False
-            
-        other_src = self.concordances_key
-        other_id = f['properties']['id']
-
-        return self.has_concordance_lookup(other_id, other_src)
-
-    def massage_feature(self, f):
+    def massage_feature(f):
 
         props = f['properties']
         id = int(props['id'])
@@ -37,7 +24,3 @@ class importer(mapzen.whosonfirst.importer.base):
         props['wof:concordances'] = concordances
 
         f['properties'] = props
-
-        self.append_hierarchy_and_parent_pip(f)
-
-        self.append_mapshaper_centroid(f, mapshaper="/usr/local/mapzen/mapshaper/bin/mapshaper")

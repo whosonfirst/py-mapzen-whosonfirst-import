@@ -1,16 +1,6 @@
-import mapzen.whosonfirst.importer
-import logging
+class marine_importer:
 
-class ne_importer(mapzen.whosonfirst.importer.base):
-
-    def has_concordance(self, f):
-
-        geom = mapzen.whosonfirst.utils.hash_geom(f)
-        return self.has_concordance_lookup(geom, 'wof:geomhash')
-
-class marine_importer(ne_importer):
-
-    def massage_feature(self, f):
+    def massage_feature(f):
 
         props = f['properties']
 
@@ -43,10 +33,10 @@ class marine_importer(ne_importer):
 
         f['properties'] = props
 
-        self.append_hierarchy_and_parent(f)
-
+        """
         if placetype == 'ocean' and f['properties']['wof:parent_id'] == -1:
             f['properties']['wof:parent_id'] = 0
             f['properties']['wof:hierarchy'] = [ { 'planet_id': 0 } ]
+        """
 
         # pass-by-ref

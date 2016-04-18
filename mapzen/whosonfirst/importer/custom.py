@@ -1,8 +1,6 @@
-import mapzen.whosonfirst.importer
+class gowanusheights_importer:
 
-class gowanusheights_importer(mapzen.whosonfirst.importer.base):
-
-    def massage_feature(self, f):
+    def massage_feature(f):
 
         props = {}
         props['wof:placetype'] = 'neighbourhood'
@@ -13,9 +11,9 @@ class gowanusheights_importer(mapzen.whosonfirst.importer.base):
 
         f['properties'] = props
 
-class lalengua_importer(mapzen.whosonfirst.importer.base):
+class lalengua_importer:
 
-    def massage_feature(self, f):
+    def massage_feature(f):
 
         props = {}
         props['wof:placetype'] = 'neighbourhood'
@@ -24,9 +22,9 @@ class lalengua_importer(mapzen.whosonfirst.importer.base):
 
         f['properties'] = props
 
-class minitenders_importer(mapzen.whosonfirst.importer.base):
+class minitenders_importer:
 
-    def massage_feature(self, f):
+    def massage_feature(f):
 
         name = f['properties']['Name']
 

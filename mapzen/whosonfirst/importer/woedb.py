@@ -1,28 +1,6 @@
-import mapzen.whosonfirst.importer
-import logging
+class timezone_importer:
 
-class woedb_importer(mapzen.whosonfirst.importer.base):
-
-    def has_concordance(self, f):
-
-        if not self.concordances_db:
-            return False
-            
-        props = f['properties']
-        lookup = props['woe:id']
-
-        if lookup:
-            wofid = self.concordances_db.woe_id(lookup)
-            logging.debug("got %s for %s" % (wofid, lookup))
-
-        if wofid == 0:
-            return False
-
-        return True
-    
-class timezone_importer(woedb_importer):
-
-    def massage_feature(self, f):
+    def massage_feature(f):
 
         woe_props = f['properties']
 
@@ -39,9 +17,9 @@ class timezone_importer(woedb_importer):
         f['properties'] = props
 
 
-class airport_importer(woedb_importer):
+class airport_importer:
 
-    def massage_feature(self, f):
+    def massage_feature(f):
 
         woe_props = f['properties']
 
@@ -123,6 +101,4 @@ class airport_importer(woedb_importer):
             props['woe:hierarchy'] = woe_hier
 
         f['properties'] = props
-
-        self.append_hierarchy_and_parent(f)
         
