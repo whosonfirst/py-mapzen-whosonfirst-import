@@ -1,6 +1,3 @@
-import mapzen.whosonfirst.importer
-import logging
-
 def massage_feature(f):
 
     sgid = f.get('id', None)
